@@ -17,6 +17,7 @@ import Html.Events exposing (onClick)
 import Html exposing (text)
 import Html.Attributes exposing (class)
 import Html exposing (div)
+import Http
 import Json.Decode as Json
 import OAuth
 import OAuth.Implicit as OAuth
@@ -88,6 +89,18 @@ configuration =
     }
 
 
+getUserInfo : Configuration -> OAuth.Token -> Cmd Msg
+getUserInfo { userInfoDecoder, userInfoEndpoint } token =
+    Http.request
+        { method = "GET"
+        , body = Http.emptyBody
+        , headers = OAuth.useToken token []
+        , url = Url.toString userInfoEndpoint
+        , expect = Http.expectJson GotUserInfo userInfoDecoder
+        , timeout = Nothing
+        , tracker = Nothing
+        }
+
 -- INIT
 
 
@@ -100,18 +113,41 @@ type alias Model =
 
 init : Shared.Model -> Request -> ( Model, Effect Msg )
 init shared req =
-    ( Model
-        (case shared.user of
+    let
+        state = "some_state"
+        origin = req.url
+        redirectUri =
+            { origin | query = Nothing, fragment = Nothing }
+
+        clearUrl =
+            Navigation.replaceUrl req.key (Url.toString redirectUri)
+        model = case shared.user of
             Just user ->
-                Api.Data.Success user
+                Model (Api.Data.Success user) "" ""
 
             Nothing ->
-                Api.Data.NotAsked
-        )
-        ""
-        ""
-    , Effect.none
-    )
+                Model Api.Data.NotAsked "" ""
+    in
+        (model,Effect.none)
+    -- case OAuth.parseToken origin of
+    --     OAuth.Empty -> ( model, Effect.none)
+
+    --     -- It is important to set a `state` when making the authorization request
+    --     -- and to verify it after the redirection. The state can be anything but its primary
+    --     -- usage is to prevent cross-site request forgery; at minima, it should be a short,
+    --     -- non-guessable string, generated on the fly.
+    --     --
+    --     -- We remember any previously generated state  state using the browser's local storage
+    --     -- and give it back (if present) to the elm application upon start
+    --     OAuth.Success { token } ->
+    --         ( model
+    --         , Effect.fromCmd (Cmd.batch [  (getUserInfo configuration token)
+    --                     , clearUrl
+    --                     ]
+    --         ))
+
+    --     OAuth.Error error ->
+    --         ( model, Effect.fromCmd clearUrl )
 
 
 
@@ -124,6 +160,7 @@ type Msg
     | GoogleSignIn
     | FacebookSignIn
     | GotUser (Data User)
+    | GotUserInfo (Result Http.Error UserInfo)
 
 
 type Field
@@ -192,6 +229,11 @@ update req msg model =
 
                 Nothing ->
                     ( { model | user = user }
+                    , Effect.none
+                    )
+        
+        GotUserInfo user ->
+                    ( model
                     , Effect.none
                     )
 

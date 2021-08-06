@@ -13,7 +13,7 @@ import Bridge exposing (..)
 import Components.Footer
 import Components.Navbar
 import Html exposing (..)
-import Html.Attributes exposing (class, href, rel)
+import Html.Attributes exposing (class, href, rel, name, attribute)
 import Request exposing (Request)
 import Utils.Route
 import View exposing (View)
@@ -106,4 +106,5 @@ css =
     -- Import the custom Bootstrap 4 theme from our hosted CDN
     , Html.node "link" [ rel "stylesheet", href "//demo.productionready.io/main.css" ] []
     , Html.node "link" [ rel "stylesheet", href "/style.css" ] []
+    , Html.node "meta" [ name "google-site-verification", attribute "content" "n_GG8hMXwLLpdCtJbQM69cmp7cmP1nL5ApSJi8pX2as" ] []
     ]

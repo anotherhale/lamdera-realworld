@@ -63,8 +63,8 @@ loginUrl : Url
 loginUrl = 
     { protocol = Http
     , host = "localhost"
-    , path = "signin"
-    , port_ = Just 9000
+    , path = "login"
+    , port_ = Just 8000
     , query = Nothing
     , fragment = Nothing
     }
@@ -83,7 +83,7 @@ configuration =
             (Json.field "name" Json.string)
             (Json.field "picture" Json.string)
     , clientId =
-        "909608474358-fkok86ks7e83c47aq01aiit47vsoh4s0.apps.googleusercontent.com"
+        "276782155307-dm34elu4su8tjk7pth81kp57vncill1s.apps.googleusercontent.com"
     , scope =
         [ "profile" ]
     }
@@ -128,26 +128,26 @@ init shared req =
             Nothing ->
                 Model Api.Data.NotAsked "" ""
     in
-        (model,Effect.none)
-    -- case OAuth.parseToken origin of
-    --     OAuth.Empty -> ( model, Effect.none)
+        -- (model,Effect.none)
+    case OAuth.parseToken origin of
+        OAuth.Empty -> ( model, Effect.none)
 
-    --     -- It is important to set a `state` when making the authorization request
-    --     -- and to verify it after the redirection. The state can be anything but its primary
-    --     -- usage is to prevent cross-site request forgery; at minima, it should be a short,
-    --     -- non-guessable string, generated on the fly.
-    --     --
-    --     -- We remember any previously generated state  state using the browser's local storage
-    --     -- and give it back (if present) to the elm application upon start
-    --     OAuth.Success { token } ->
-    --         ( model
-    --         , Effect.fromCmd (Cmd.batch [  (getUserInfo configuration token)
-    --                     , clearUrl
-    --                     ]
-    --         ))
+        -- It is important to set a `state` when making the authorization request
+        -- and to verify it after the redirection. The state can be anything but its primary
+        -- usage is to prevent cross-site request forgery; at minima, it should be a short,
+        -- non-guessable string, generated on the fly.
+        --
+        -- We remember any previously generated state  state using the browser's local storage
+        -- and give it back (if present) to the elm application upon start
+        OAuth.Success { token } ->
+            ( model
+            , Effect.fromCmd (Cmd.batch [  (getUserInfo configuration token)
+                        , clearUrl
+                        ]
+            ))
 
-    --     OAuth.Error error ->
-    --         ( model, Effect.fromCmd clearUrl )
+        OAuth.Error error ->
+            ( model, Effect.fromCmd clearUrl )
 
 
 

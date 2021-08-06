@@ -63,7 +63,7 @@ loginUrl : Url
 loginUrl = 
     { protocol = Https
     , host = "realworld-oauth2.lamdera.app"
-    , path = "login"
+    , path = ""
     , port_ = Nothing
     , query = Nothing
     , fragment = Nothing
@@ -185,7 +185,7 @@ update req msg model =
 
             let
                 state = "random string"
-                redirectUri = loginUrl
+                redirectUri = { loginUrl | path = "/login" }
                 authorization =
                     { clientId = configuration.clientId
                     , redirectUri = redirectUri

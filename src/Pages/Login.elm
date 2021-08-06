@@ -61,10 +61,10 @@ defaultHttpsUrl =
 
 loginUrl : Url
 loginUrl = 
-    { protocol = Http
-    , host = "localhost"
+    { protocol = Https
+    , host = "realworld-oauth2.lamdera.app"
     , path = "login"
-    , port_ = Just 8000
+    , port_ = Nothing
     , query = Nothing
     , fragment = Nothing
     }

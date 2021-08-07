@@ -22,6 +22,8 @@ import Json.Decode as Json
 import OAuth
 import OAuth.Implicit as OAuth
 import Url exposing (Protocol(..), Url)
+import Evergreen.V1.Pages.Register exposing (Msg(..))
+import Html exposing (s)
 
 page : Shared.Model -> Request -> Page.With Model Msg
 page shared req =
@@ -63,7 +65,7 @@ loginUrl : Url
 loginUrl = 
     { protocol = Https
     , host = "realworld-oauth2.lamdera.app"
-    , path = ""
+    , path = "/login"
     , port_ = Nothing
     , query = Nothing
     , fragment = Nothing
@@ -96,7 +98,7 @@ getUserInfo { userInfoDecoder, userInfoEndpoint } token =
         , body = Http.emptyBody
         , headers = OAuth.useToken token []
         , url = Url.toString userInfoEndpoint
-        , expect = Http.expectJson GotUserInfo userInfoDecoder
+        , expect = Http.expectJson GotGoogleUserInfo userInfoDecoder
         , timeout = Nothing
         , tracker = Nothing
         }
@@ -160,7 +162,7 @@ type Msg
     | GoogleSignIn
     | FacebookSignIn
     | GotUser (Data User)
-    | GotUserInfo (Result Http.Error UserInfo)
+    | GotGoogleUserInfo (Result Http.Error UserInfo)
 
 
 type Field
@@ -185,7 +187,7 @@ update req msg model =
 
             let
                 state = "random string"
-                redirectUri = { loginUrl | path = "/login" }
+                redirectUri = loginUrl
                 authorization =
                     { clientId = configuration.clientId
                     , redirectUri = redirectUri
@@ -232,10 +234,30 @@ update req msg model =
                     , Effect.none
                     )
         
-        GotUserInfo user ->
+        GotGoogleUserInfo userinfo ->
+            case userinfo of 
+                Err _ ->
                     ( model
                     , Effect.none
                     )
+
+                Ok userInfo ->
+                    let
+                        user = (User 0 "" userInfo.name Nothing userInfo.picture)
+                        datauser = Api.Data.Success user
+                        --   ( GotUser (APi.Data.Success )) <| model
+                    in
+                    ( { model | user = datauser }
+                    , Effect.batch
+                        [ Effect.fromCmd (Utils.Route.navigate req.key Route.Home_)
+                        , Effect.fromShared (Shared.SignedInUser user)
+                        ]
+                    )
+
+
+
+                  
+                    
 
 
 subscriptions : Model -> Sub Msg

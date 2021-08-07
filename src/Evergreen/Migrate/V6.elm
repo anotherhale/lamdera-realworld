@@ -17,7 +17,7 @@ backendModel old =
 
 frontendMsg : Old.FrontendMsg -> MsgMigration New.FrontendMsg New.FrontendMsg
 frontendMsg old =
-    Unimplemented
+    MsgUnchanged
 
 
 toBackend : Old.ToBackend -> MsgMigration New.ToBackend New.BackendMsg
@@ -32,4 +32,4 @@ backendMsg old =
 
 toFrontend : Old.ToFrontend -> MsgMigration New.ToFrontend New.FrontendMsg
 toFrontend old =
-    Unimplemented
+    MsgUnchanged

@@ -29,4 +29,4 @@ type Msg
     | GoogleSignIn
     | FacebookSignIn
     | GotUser (Evergreen.V1.Api.Data.Data Evergreen.V1.Api.User.User)
-    | GotUserInfo (Result Http.Error UserInfo)
+    | GotGoogleUserInfo (Result Http.Error UserInfo)

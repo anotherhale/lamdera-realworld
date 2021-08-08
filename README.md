@@ -34,7 +34,6 @@ lamdera reset
 lamdera live
 ```
 
-
 For any `elm-spa` changes, such as vendoring one of the `.elm-spa` defaults, re-run `elm-spa make`.
 
 Note: the `.elm-spa` folder currently needs to be committed to successfully deploy, as Lamdera doesn't run elm-spa build commands.

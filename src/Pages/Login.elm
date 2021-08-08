@@ -132,7 +132,11 @@ init shared req =
     in
         -- (model,Effect.none)
     case OAuth.parseToken origin of
-        OAuth.Empty -> ( model, Effect.none)
+        OAuth.Empty -> 
+            let
+                _ = Debug.log "Empty Oauth2" ""
+            in
+            ( model, Effect.none)
 
         -- It is important to set a `state` when making the authorization request
         -- and to verify it after the redirection. The state can be anything but its primary
@@ -142,6 +146,9 @@ init shared req =
         -- We remember any previously generated state  state using the browser's local storage
         -- and give it back (if present) to the elm application upon start
         OAuth.Success { token } ->
+            let
+                _ = Debug.log "Oauth success" ""
+            in        
             ( model
             , Effect.fromCmd (Cmd.batch [  (getUserInfo configuration token)
                         , clearUrl
@@ -149,6 +156,9 @@ init shared req =
             ))
 
         OAuth.Error error ->
+            let
+                _ = Debug.log "Oauth2 error" ""
+            in
             ( model, Effect.fromCmd clearUrl )
 
 
@@ -243,6 +253,7 @@ update req msg model =
 
                 Ok userInfo ->
                     let
+                        _ = Debug.log "userInfo" userInfo.name
                         user = (User 0 "" userInfo.name Nothing userInfo.picture)
                         datauser = Api.Data.Success user
                         --   ( GotUser (APi.Data.Success )) <| model

@@ -199,7 +199,7 @@ update req msg model =
                     , url = configuration.authorizationEndpoint
                     }
             in
-            ( model
+            ( {model | message = Just "Google Sign In" }
             , Effect.fromCmd <| (authorization
                 |> OAuth.makeAuthorizationUrl
                 |> Url.toString
@@ -233,7 +233,7 @@ update req msg model =
                     )
 
                 Nothing ->
-                    ( { model | user = user }
+                    ( { model | user = user, error = Just "GOt User Err" }
                     , Effect.none
                     )
         

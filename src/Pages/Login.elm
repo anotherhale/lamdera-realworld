@@ -146,10 +146,12 @@ init shared req =
         -- and give it back (if present) to the elm application upon start
         OAuth.Success { token } ->  
             ( { model | message = Just "oauth success" }
-            , Effect.fromCmd (Cmd.batch [  (getUserInfo configuration token)
-                        , clearUrl
-                        ]
-            ))
+            , Effect.none
+            -- fromCmd (Cmd.batch [  (getUserInfo configuration token)
+                        -- , clearUrl
+                        -- ]
+            -- )
+            )
 
         OAuth.Error error ->
             ( {model | error = Just "oauth error" }, Effect.fromCmd clearUrl )
@@ -248,7 +250,6 @@ update req msg model =
                     let
                         user = (User 0 "" userInfo.name Nothing userInfo.picture)
                         datauser = Api.Data.Success user
-                        --   ( GotUser (APi.Data.Success )) <| model
                     in
                     ( { model | user = datauser, message = Just "got google user info" }
                     , Effect.batch

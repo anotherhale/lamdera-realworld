@@ -110,6 +110,8 @@ type alias Model =
     { user : Data User
     , email : String
     , password : String
+    , error : Maybe String
+    , message : Maybe String
     }
 
 
@@ -125,18 +127,15 @@ init shared req =
             Navigation.replaceUrl req.key (Url.toString redirectUri)
         model = case shared.user of
             Just user ->
-                Model (Api.Data.Success user) "" ""
+                Model (Api.Data.Success user) "" "" Nothing (Just user.username)
 
             Nothing ->
-                Model Api.Data.NotAsked "" ""
+                Model Api.Data.NotAsked "" "" Nothing Nothing
     in
         -- (model,Effect.none)
     case OAuth.parseToken origin of
         OAuth.Empty -> 
-            let
-                _ = Debug.log "Empty Oauth2" ""
-            in
-            ( model, Effect.none)
+            ( {model | error = Just "empty oauth" }, Effect.none)
 
         -- It is important to set a `state` when making the authorization request
         -- and to verify it after the redirection. The state can be anything but its primary
@@ -145,21 +144,15 @@ init shared req =
         --
         -- We remember any previously generated state  state using the browser's local storage
         -- and give it back (if present) to the elm application upon start
-        OAuth.Success { token } ->
-            let
-                _ = Debug.log "Oauth success" ""
-            in        
-            ( model
+        OAuth.Success { token } ->  
+            ( { model | message = Just "oauth success" }
             , Effect.fromCmd (Cmd.batch [  (getUserInfo configuration token)
                         , clearUrl
                         ]
             ))
 
         OAuth.Error error ->
-            let
-                _ = Debug.log "Oauth2 error" ""
-            in
-            ( model, Effect.fromCmd clearUrl )
+            ( {model | error = Just "oauth error" }, Effect.fromCmd clearUrl )
 
 
 
@@ -232,7 +225,7 @@ update req msg model =
         GotUser user ->
             case Api.Data.toMaybe user of
                 Just user_ ->
-                    ( { model | user = user }
+                    ( { model | user = user, message = Just "GotUser" }
                     , Effect.batch
                         [ Effect.fromCmd (Utils.Route.navigate req.key Route.Home_)
                         , Effect.fromShared (Shared.SignedInUser user_)
@@ -247,18 +240,17 @@ update req msg model =
         GotGoogleUserInfo userinfo ->
             case userinfo of 
                 Err _ ->
-                    ( model
+                    ( { model | error = Just "userinfo error" }
                     , Effect.none
                     )
 
                 Ok userInfo ->
                     let
-                        _ = Debug.log "userInfo" userInfo.name
                         user = (User 0 "" userInfo.name Nothing userInfo.picture)
                         datauser = Api.Data.Success user
                         --   ( GotUser (APi.Data.Success )) <| model
                     in
-                    ( { model | user = datauser }
+                    ( { model | user = datauser, message = Just "got google user info" }
                     , Effect.batch
                         [ Effect.fromCmd (Utils.Route.navigate req.key Route.Home_)
                         , Effect.fromShared (Shared.SignedInUser user)
@@ -291,8 +283,8 @@ view model =
             ]
         , div [ class "container page" ]
             [ div [ class "row" ] []
-            , div [ class "text-center"] [ button 
-                [ onClick FacebookSignIn, class "btn-facebook" ] [ text "Sign in" ] ]
+            , div [ class "text-center"] [ text (Maybe.withDefault "" model.message) ]
+            , div [ class "text-center"] [ text (Maybe.withDefault "" model.error) ]
             ]
         , Components.UserForm.view
             { user = model.user

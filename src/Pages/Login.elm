@@ -287,24 +287,6 @@ view model =
             , div [ class "text-center"] [ text (Maybe.withDefault "" model.message) ]
             , div [ class "text-center"] [ text (Maybe.withDefault "" model.error) ]
             ]
-        , Components.UserForm.view
-            { user = model.user
-            , label = "Sign in"
-            , onFormSubmit = AttemptedSignIn
-            , alternateLink = { label = "Need an account?", route = Route.Register }
-            , fields =
-                [ { label = "Email"
-                  , type_ = "email"
-                  , value = model.email
-                  , onInput = Updated Email
-                  }
-                , { label = "Password"
-                  , type_ = "password"
-                  , value = model.password
-                  , onInput = Updated Password
-                  }
-                ]
-            }
         ]
 
     }

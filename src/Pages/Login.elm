@@ -64,7 +64,7 @@ defaultHttpsUrl =
 loginUrl : Url
 loginUrl = 
     { protocol = Https
-    , host = "realworld-oauth2.lamdera.app"
+    , host = "lamdera-realworld.lamdera.app"
     , path = "/login"
     , port_ = Nothing
     , query = Nothing

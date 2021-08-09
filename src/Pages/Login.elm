@@ -146,14 +146,13 @@ init shared req =
         -- and give it back (if present) to the elm application upon start
         OAuth.Success { token } ->  
             ( { model | message = Just "oauth success" }
-            , Effect.none
-            -- fromCmd (Cmd.batch [  (getUserInfo configuration token)
-                        -- , clearUrl
-                        -- ]
-            -- )
-            )
+            , Effect.fromCmd (Cmd.batch 
+                [ (getUserInfo configuration token)
+                , clearUrl
+                ]
+            ))
 
-        OAuth.Error error ->
+        OAuth.Error _ ->
             ( {model | error = Just "oauth error" }, Effect.fromCmd clearUrl )
 
 

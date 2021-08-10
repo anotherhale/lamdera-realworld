@@ -37,7 +37,9 @@ page shared req =
 
 
 type alias UserInfo =
-    { name : String
+    { id: String
+    , email: String
+    , name : String
     , picture : String
     }
 
@@ -81,7 +83,9 @@ configuration =
     , userInfoEndpoint =
         { defaultHttpsUrl | host = "www.googleapis.com", path = "/oauth2/v1/userinfo" }
     , userInfoDecoder =
-        Json.map2 UserInfo
+        Json.map4 UserInfo
+            (Json.field "id" Json.string)
+            (Json.field "email" Json.string)
             (Json.field "name" Json.string)
             (Json.field "picture" Json.string)
     , clientId =
@@ -247,7 +251,8 @@ update req msg model =
 
                 Ok userInfo ->
                     let
-                        user = (User userInfo.id "" userInfo.name Nothing userInfo.picture)
+                        userId = String.toInt userInfo.id |> Maybe.withDefault 0
+                        user = (User userId userInfo.email userInfo.email Nothing userInfo.picture)
                         datauser = Api.Data.Success user
                     in
                     ( { model | user = datauser, message = Just "got google user info" }

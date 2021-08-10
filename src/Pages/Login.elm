@@ -87,7 +87,7 @@ configuration =
     , clientId =
         "276782155307-dm34elu4su8tjk7pth81kp57vncill1s.apps.googleusercontent.com"
     , scope =
-        [ "profile" ]
+        [ "profile", "email" ]
     }
 
 
@@ -247,7 +247,7 @@ update req msg model =
 
                 Ok userInfo ->
                     let
-                        user = (User 0 "" userInfo.name Nothing userInfo.picture)
+                        user = (User userInfo.id "" userInfo.name Nothing userInfo.picture)
                         datauser = Api.Data.Success user
                     in
                     ( { model | user = datauser, message = Just "got google user info" }

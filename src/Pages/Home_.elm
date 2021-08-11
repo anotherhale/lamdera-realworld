@@ -201,7 +201,7 @@ view : Shared.Model -> Model -> View Msg
 view shared model =
     let
         user = case shared.user of
-            Just u -> toString u.id ++ " " ++ u.email
+            Just u -> String.fromInt u.id ++ " " ++ u.email
             Nothing -> "No User"
 
     in

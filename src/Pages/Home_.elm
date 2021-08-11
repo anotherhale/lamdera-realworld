@@ -199,13 +199,6 @@ subscriptions _ =
 
 view : Shared.Model -> Model -> View Msg
 view shared model =
-    let
-        user = case shared.user of
-            Just u -> String.fromInt u.id ++ " " ++ u.email
-            Nothing -> "No User"
-
-    in
-    
     { title = ""
     , body =
         [ div [ class "home-page" ]
@@ -230,7 +223,6 @@ view shared model =
                     , div [ class "col-md-3" ] [ viewTags model.tags ]
                     ]
                 ]
-            , div [] [ text user]
             ]
         ]
     }

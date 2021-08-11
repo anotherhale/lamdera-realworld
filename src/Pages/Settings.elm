@@ -6,7 +6,7 @@ import Bridge exposing (..)
 import Components.ErrorList
 import Effect exposing (Effect)
 import Html exposing (..)
-import Html.Attributes exposing (attribute, class, placeholder, type_, value)
+import Html.Attributes exposing (attribute, class, placeholder, type_, value, src, alt)
 import Html.Events as Events
 import Page
 import Request exposing (Request)
@@ -157,7 +157,8 @@ view user model =
                                 p [ class "text-success" ] [ text message ]
                         , form [ Events.onSubmit (SubmittedForm user) ]
                             [ fieldset []
-                                [ fieldset [ class "form-group" ]
+                                [ img [ src model.image, alt model.username ] []
+                                , fieldset [ class "form-group" ]
                                     [ input
                                         [ class "form-control"
                                         , placeholder "URL of profile picture"

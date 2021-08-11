@@ -359,6 +359,12 @@ updateFromFrontend sessionId clientId msg model =
                 model
                 (\r -> send_ (PageMsg (Gen.Msg.Article__Slug_ (Pages.Article.Slug_.GotAuthor r))))
 
+        Oauth2_Login user ->
+            let 
+                ( response, cmd) = ( Success user, renewSession user.id sessionId clientId )
+            in
+                ( model, Cmd.batch [ send_ (PageMsg (Gen.Msg.Login (Pages.Login.GotUser response))), cmd ] )
+
         UserAuthentication_Login { params } ->
             let
                 ( response, cmd ) =

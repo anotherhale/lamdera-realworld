@@ -37,6 +37,7 @@ type ToBackend
     | ArticleCommentGet_Article__Slug_ { articleSlug : String }
     | ArticleCommentCreate_Article__Slug_ { articleSlug : String, comment : { body : String } }
     | ArticleCommentDelete_Article__Slug_ { articleSlug : String, commentId : Int }
+    | Oauth2_Login User
     | ProfileGet_Profile__Username_ { username : String }
     | ProfileFollow_Profile__Username_ { username : String }
     | ProfileUnfollow_Profile__Username_ { username : String }

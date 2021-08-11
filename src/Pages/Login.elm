@@ -165,12 +165,12 @@ init shared req =
 
 
 type Msg
-    = Updated Field String
-    | AttemptedSignIn
-    | GoogleSignIn
+    = AttemptedSignIn
     | FacebookSignIn
-    | GotUser (Data User)
+    | GoogleSignIn
     | GotGoogleUserInfo (Result Http.Error UserInfo)
+    | GotUser (Data User)
+    | Updated Field String
 
 
 type Field
@@ -259,6 +259,7 @@ update req msg model =
                     , Effect.batch
                         [ Effect.fromCmd (Utils.Route.navigate req.key Route.Home_)
                         , Effect.fromShared (Shared.SignedInUser user)
+                        , Effect.fromCmd << sendToBackend <| (Oauth2_Login user)
                         ]
                     )
 
@@ -291,6 +292,24 @@ view model =
             , div [ class "text-center"] [ text (Maybe.withDefault "" model.message) ]
             , div [ class "text-center"] [ text (Maybe.withDefault "" model.error) ]
             ]
+        , Components.UserForm.view
+            { user = model.user
+            , label = "Sign in"
+            , onFormSubmit = AttemptedSignIn
+            , alternateLink = { label = "Need an account?", route = Route.Register }
+            , fields =
+                [ { label = "Email"
+                  , type_ = "email"
+                  , value = model.email
+                  , onInput = Updated Email
+                  }
+                , { label = "Password"
+                  , type_ = "password"
+                  , value = model.password
+                  , onInput = Updated Password
+                  }
+                ]
+            }
         ]
 
     }

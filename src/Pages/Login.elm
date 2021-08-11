@@ -114,8 +114,6 @@ type alias Model =
     { user : Data User
     , email : String
     , password : String
-    , error : Maybe String
-    , message : Maybe String
     }
 
 
@@ -131,15 +129,15 @@ init shared req =
             Navigation.replaceUrl req.key (Url.toString redirectUri)
         model = case shared.user of
             Just user ->
-                Model (Api.Data.Success user) "" "" Nothing (Just user.username)
+                Model (Api.Data.Success user) "" ""
 
             Nothing ->
-                Model Api.Data.NotAsked "" "" Nothing Nothing
+                Model Api.Data.NotAsked "" ""
     in
         -- (model,Effect.none)
     case OAuth.parseToken origin of
         OAuth.Empty -> 
-            ( {model | error = Just "empty oauth" }, Effect.none)
+            ( model, Effect.none)
 
         -- It is important to set a `state` when making the authorization request
         -- and to verify it after the redirection. The state can be anything but its primary
@@ -149,7 +147,7 @@ init shared req =
         -- We remember any previously generated state  state using the browser's local storage
         -- and give it back (if present) to the elm application upon start
         OAuth.Success { token } ->  
-            ( { model | message = Just "oauth success" }
+            ( model
             , Effect.fromCmd (Cmd.batch 
                 [ (getGoolgeUserInfo configuration token)
                 , clearUrl
@@ -157,7 +155,7 @@ init shared req =
             ))
 
         OAuth.Error _ ->
-            ( {model | error = Just "oauth error" }, Effect.fromCmd clearUrl )
+            ( model, Effect.fromCmd clearUrl )
 
 
 
@@ -204,7 +202,7 @@ update req msg model =
                     , url = configuration.authorizationEndpoint
                     }
             in
-            ( {model | message = Just "Google Sign In" }
+            ( model
             , Effect.fromCmd <| (authorization
                 |> OAuth.makeAuthorizationUrl
                 |> Url.toString
@@ -230,7 +228,7 @@ update req msg model =
         GotUser user ->
             case Api.Data.toMaybe user of
                 Just user_ ->
-                    ( { model | user = user, message = Just "GotUser" }
+                    ( { model | user = user }
                     , Effect.batch
                         [ Effect.fromCmd (Utils.Route.navigate req.key Route.Home_)
                         , Effect.fromShared (Shared.SignedInUser user_)
@@ -238,14 +236,14 @@ update req msg model =
                     )
 
                 Nothing ->
-                    ( { model | user = user, error = Just "GOt User Err" }
+                    ( { model | user = user }
                     , Effect.none
                     )
         
         GotGoogleUserInfo userinfo ->
             case userinfo of 
                 Err _ ->
-                    ( { model | error = Just "userinfo error" }
+                    ( model
                     , Effect.none
                     )
 
@@ -255,7 +253,7 @@ update req msg model =
                         user = (User userId userInfo.email userInfo.email Nothing userInfo.picture)
                         datauser = Api.Data.Success user
                     in
-                    ( { model | user = datauser, message = Just "got google user info" }
+                    ( { model | user = datauser }
                     , Effect.batch
                         [ Effect.fromCmd (Utils.Route.navigate req.key Route.Home_)
                         , Effect.fromShared (Shared.SignedInUser user)
@@ -286,11 +284,6 @@ view model =
             [ div [ class "row" ] []
             , div [ class "text-center auth-btn"] [ button 
                 [ onClick GoogleSignIn, class "btn-google" ] [ text "Sign in" ] ]
-            ]
-        , div [ class "container page" ]
-            [ div [ class "row" ] []
-            , div [ class "text-center"] [ text (Maybe.withDefault "" model.message) ]
-            , div [ class "text-center"] [ text (Maybe.withDefault "" model.error) ]
             ]
         , Components.UserForm.view
             { user = model.user

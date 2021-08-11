@@ -95,8 +95,8 @@ configuration =
     }
 
 
-getUserInfo : Configuration -> OAuth.Token -> Cmd Msg
-getUserInfo { userInfoDecoder, userInfoEndpoint } token =
+getGoolgeUserInfo : Configuration -> OAuth.Token -> Cmd Msg
+getGoolgeUserInfo { userInfoDecoder, userInfoEndpoint } token =
     Http.request
         { method = "GET"
         , body = Http.emptyBody
@@ -151,7 +151,7 @@ init shared req =
         OAuth.Success { token } ->  
             ( { model | message = Just "oauth success" }
             , Effect.fromCmd (Cmd.batch 
-                [ (getUserInfo configuration token)
+                [ (getGoolgeUserInfo configuration token)
                 , clearUrl
                 ]
             ))

@@ -14,6 +14,7 @@ import Request exposing (Request)
 import Shared
 import Utils.Maybe
 import View exposing (View)
+import Debug exposing (toString)
 
 
 page : Shared.Model -> Request -> Page.With Model Msg
@@ -198,6 +199,13 @@ subscriptions _ =
 
 view : Shared.Model -> Model -> View Msg
 view shared model =
+    let
+        user = case shared.user of
+            Just u -> toString u.id ++ " " ++ u.email
+            Nothing -> "No User"
+
+    in
+    
     { title = ""
     , body =
         [ div [ class "home-page" ]
@@ -222,6 +230,7 @@ view shared model =
                     , div [ class "col-md-3" ] [ viewTags model.tags ]
                     ]
                 ]
+            , div [] [ text user]
             ]
         ]
     }

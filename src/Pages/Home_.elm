@@ -234,7 +234,7 @@ view shared model =
             ]
         ]
     }
-
+ 
 
 viewTabs :
     Shared.Model

@@ -284,7 +284,7 @@ view model =
     , body =
         [ div [ class "container page" ]
             [ div [ class "row" ] []
-            , div [ class "text-center"] [ button 
+            , div [ class "text-center auth-btn"] [ button 
                 [ onClick GoogleSignIn, class "btn-google" ] [ text "Sign in" ] ]
             ]
         , div [ class "container page" ]

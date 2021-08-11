@@ -4,7 +4,7 @@
   text-align: center;
 }
 
-button {
+.auth-btn button {
   border: none;
   box-shadow: rgba(0,0,0,0.25) 0px 2px 4px 0px;
   color: #757575;
@@ -18,7 +18,7 @@ button {
   width: 10em;
 }
 
-button::-moz-focus-inner {
+.auth-btn button::-moz-focus-inner {
   border: 0;
 }
 

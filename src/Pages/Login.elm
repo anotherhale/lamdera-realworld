@@ -115,21 +115,20 @@ hence the user info endpoint and JSON decoder
 facebookConfiguration : Configuration
 facebookConfiguration =
     { authorizationEndpoint =
-        { defaultHttpsUrl | host = "accounts.google.com", path = "/o/oauth2/v2/auth" }
+        { defaultHttpsUrl | host = "facebook.com", path = "/v6.0/dialog/oauth" }
     , userInfoEndpoint =
-        { defaultHttpsUrl | host = "www.googleapis.com", path = "/oauth2/v1/userinfo" }
+        { defaultHttpsUrl | host = "graph.facebook.com", path = "/v6.0/me", query = Just "fields=name,picture.type(large)" }
     , userInfoDecoder =
         Json.map4 UserInfo
             (Json.field "id" Json.string)
             (Json.field "email" Json.string)
             (Json.field "name" Json.string)
-            (Json.field "picture" Json.string)
+            (Json.field "picture" <| Json.field "data" <| Json.field "url" Json.string)
     , clientId =
-        "276782155307-dm34elu4su8tjk7pth81kp57vncill1s.apps.googleusercontent.com"
+        "533032778122323"
     , scope =
-        [ "profile", "email" ]
+        [ "public_profile", "email" ]
     }
-
 
 getFacebookUserInfo : Configuration -> OAuth.Token -> Cmd Msg
 getFacebookUserInfo { userInfoDecoder, userInfoEndpoint } token =
@@ -143,15 +142,23 @@ getFacebookUserInfo { userInfoDecoder, userInfoEndpoint } token =
         , tracker = Nothing
         }
 
+
 type alias OAuthState =
     { random : String
     , authType: String
     }
 
-authTypeDecoder =
+type AuthType = Facebook
+              | Google
+              | Unknown
+
+outhStateDecoder =
         Json.map2 OAuthState
             (Json.field "random" Json.string)
-            (Json.field "authType" Json.string)
+            (Json.field "authType" Json.string) --authTypeDecoder)
+
+-- authTypeDecoder = 
+
 -- INIT
 
 
@@ -191,19 +198,19 @@ init shared req =
         -- usage is to prevent cross-site request forgery; at minima, it should be a short,
         -- non-guessable string, generated on the fly.
         --
-        -- We remember any previously generated state  state using the browser's local storage
-        -- and give it back (if present) to the elm application upon start
+        -- We request a random string from RandomOrg and store it in the model and then 
+        -- verify the request's random string to the model and also the authType to know 
+        -- what type of OAuth request to make (Google or Facebook)
         OAuth.Success { token, state } ->  
             let
-                authType = case state of
-                    Just s -> case (Json.decodeString (field "authType" string) s) of
-                                Ok a -> a
-                                Err _-> "google"
-                    Nothing -> "google"
+                state_ = Maybe.withDefault "unknown" state
+                authType = case Json.decodeString (field "authType" string) state_ of
+                            Ok a -> a
+                            Err _ -> "unknown"
                 cmd = if (String.toLower authType) == "google" then
                         (getGoolgeUserInfo googleConfiguration token)
                       else
-                        (getGoolgeUserInfo googleConfiguration token)
+                        (getFacebookUserInfo facebookConfiguration token)
             in
             
             ( model

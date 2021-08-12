@@ -24,6 +24,7 @@ import OAuth.Implicit as OAuth
 import Url exposing (Protocol(..), Url)
 import Evergreen.V1.Pages.Register exposing (Msg(..))
 import Html exposing (s)
+import Api.RandomOrg
 
 page : Shared.Model -> Request -> Page.With Model Msg
 page shared req =
@@ -76,8 +77,8 @@ loginUrl =
 Note that this demo also fetches basic user information with the obtained access token,
 hence the user info endpoint and JSON decoder
 -}
-configuration : Configuration
-configuration =
+googleConfiguration : Configuration
+googleConfiguration =
     { authorizationEndpoint =
         { defaultHttpsUrl | host = "accounts.google.com", path = "/o/oauth2/v2/auth" }
     , userInfoEndpoint =
@@ -102,10 +103,46 @@ getGoolgeUserInfo { userInfoDecoder, userInfoEndpoint } token =
         , body = Http.emptyBody
         , headers = OAuth.useToken token []
         , url = Url.toString userInfoEndpoint
-        , expect = Http.expectJson GotGoogleUserInfo userInfoDecoder
+        , expect = Http.expectJson GotOauthUserInfo userInfoDecoder
         , timeout = Nothing
         , tracker = Nothing
         }
+
+{-| OAuth configuration.
+Note that this demo also fetches basic user information with the obtained access token,
+hence the user info endpoint and JSON decoder
+-}
+facebookConfiguration : Configuration
+facebookConfiguration =
+    { authorizationEndpoint =
+        { defaultHttpsUrl | host = "accounts.google.com", path = "/o/oauth2/v2/auth" }
+    , userInfoEndpoint =
+        { defaultHttpsUrl | host = "www.googleapis.com", path = "/oauth2/v1/userinfo" }
+    , userInfoDecoder =
+        Json.map4 UserInfo
+            (Json.field "id" Json.string)
+            (Json.field "email" Json.string)
+            (Json.field "name" Json.string)
+            (Json.field "picture" Json.string)
+    , clientId =
+        "276782155307-dm34elu4su8tjk7pth81kp57vncill1s.apps.googleusercontent.com"
+    , scope =
+        [ "profile", "email" ]
+    }
+
+
+getFacebookUserInfo : Configuration -> OAuth.Token -> Cmd Msg
+getFacebookUserInfo { userInfoDecoder, userInfoEndpoint } token =
+    Http.request
+        { method = "GET"
+        , body = Http.emptyBody
+        , headers = OAuth.useToken token []
+        , url = Url.toString userInfoEndpoint
+        , expect = Http.expectJson GotOauthUserInfo userInfoDecoder
+        , timeout = Nothing
+        , tracker = Nothing
+        }
+
 
 -- INIT
 
@@ -114,13 +151,13 @@ type alias Model =
     { user : Data User
     , email : String
     , password : String
+    , random: String
     }
 
 
 init : Shared.Model -> Request -> ( Model, Effect Msg )
 init shared req =
     let
-        state = "some_state"
         origin = req.url
         redirectUri =
             { origin | query = Nothing, fragment = Nothing }
@@ -129,15 +166,17 @@ init shared req =
             Navigation.replaceUrl req.key (Url.toString redirectUri)
         model = case shared.user of
             Just user ->
-                Model (Api.Data.Success user) "" ""
+                Model (Api.Data.Success user) "" "" ""
 
             Nothing ->
-                Model Api.Data.NotAsked "" ""
+                Model Api.Data.NotAsked "" "" ""
     in
         -- (model,Effect.none)
     case OAuth.parseToken origin of
         OAuth.Empty -> 
-            ( model, Effect.none)
+            ( model
+            , Effect.fromCmd (Api.RandomOrg.get5Random32Bit RandomSeedResult)
+            )
 
         -- It is important to set a `state` when making the authorization request
         -- and to verify it after the redirection. The state can be anything but its primary
@@ -149,7 +188,7 @@ init shared req =
         OAuth.Success { token } ->  
             ( model
             , Effect.fromCmd (Cmd.batch 
-                [ (getGoolgeUserInfo configuration token)
+                [ (getGoolgeUserInfo googleConfiguration token)
                 , clearUrl
                 ]
             ))
@@ -166,8 +205,9 @@ type Msg
     = AttemptedSignIn
     | FacebookSignIn
     | GoogleSignIn
-    | GotGoogleUserInfo (Result Http.Error UserInfo)
+    | GotOauthUserInfo (Result Http.Error UserInfo)
     | GotUser (Data User)
+    | RandomSeedResult (Result Http.Error String)
     | Updated Field String
 
 
@@ -192,14 +232,14 @@ update req msg model =
         GoogleSignIn ->
 
             let
-                state = "random string"
+                state = "{ 'random': '" ++ model.random ++ "', 'authType: google'}"
                 redirectUri = loginUrl
                 authorization =
-                    { clientId = configuration.clientId
+                    { clientId = googleConfiguration.clientId
                     , redirectUri = redirectUri
-                    , scope = configuration.scope
+                    , scope = googleConfiguration.scope
                     , state = Just state
-                    , url = configuration.authorizationEndpoint
+                    , url = googleConfiguration.authorizationEndpoint
                     }
             in
             ( model
@@ -240,7 +280,7 @@ update req msg model =
                     , Effect.none
                     )
         
-        GotGoogleUserInfo userinfo ->
+        GotOauthUserInfo userinfo ->
             case userinfo of 
                 Err _ ->
                     ( model
@@ -261,7 +301,8 @@ update req msg model =
                         ]
                     )
 
-
+        RandomSeedResult result ->
+            ( { model | random =  Maybe.withDefault "0" (Api.RandomOrg.toMaybeUuid result)  }, Effect.none)
 
                   
                     
@@ -285,6 +326,11 @@ view model =
             , div [ class "text-center auth-btn"] [ button 
                 [ onClick GoogleSignIn, class "btn-google" ] [ text "Sign in" ] ]
             ]
+        , div [ class "container page" ]
+            [ div [ class "row" ] []
+            , div [ class "text-center auth-btn"] [ button 
+                [ onClick FacebookSignIn, class "btn-facebook" ] [ text "Sign in" ] ]
+            ]
         , Components.UserForm.view
             { user = model.user
             , label = "Sign in"
@@ -303,6 +349,7 @@ view model =
                   }
                 ]
             }
+        , div [] [ text model.random ]
         ]
 
     }

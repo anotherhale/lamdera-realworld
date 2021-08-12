@@ -277,8 +277,22 @@ update req msg model =
             )
 
         FacebookSignIn ->
+            let
+                state = "{ 'random': '" ++ model.random ++ "', 'authType: facebook'}"
+                redirectUri = loginUrl
+                authorization =
+                    { clientId = facebookConfiguration.clientId
+                    , redirectUri = redirectUri
+                    , scope = facebookConfiguration.scope
+                    , state = Just state
+                    , url = facebookConfiguration.authorizationEndpoint
+                    }
+            in
             ( model
-            , Effect.none
+            , Effect.fromCmd <| (authorization
+                |> OAuth.makeAuthorizationUrl
+                |> Url.toString
+                |> Navigation.load)
             )
 
         AttemptedSignIn ->

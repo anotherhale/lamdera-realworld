@@ -18,7 +18,7 @@ import Html exposing (text)
 import Html.Attributes exposing (class)
 import Html exposing (div)
 import Http
-import Json.Decode as Json
+import Json.Decode as Json exposing (string, field)
 import OAuth
 import OAuth.Implicit as OAuth
 import Url exposing (Protocol(..), Url)
@@ -143,7 +143,15 @@ getFacebookUserInfo { userInfoDecoder, userInfoEndpoint } token =
         , tracker = Nothing
         }
 
+type alias OAuthState =
+    { random : String
+    , authType: String
+    }
 
+authTypeDecoder =
+        Json.map2 OAuthState
+            (Json.field "random" Json.string)
+            (Json.field "authType" Json.string)
 -- INIT
 
 
@@ -185,10 +193,22 @@ init shared req =
         --
         -- We remember any previously generated state  state using the browser's local storage
         -- and give it back (if present) to the elm application upon start
-        OAuth.Success { token } ->  
+        OAuth.Success { token, state } ->  
+            let
+                authType = case state of
+                    Just s -> case (Json.decodeString (field "authType" string) s) of
+                                Ok a -> a
+                                Err _-> "google"
+                    Nothing -> "google"
+                cmd = if (String.toLower authType) == "google" then
+                        (getGoolgeUserInfo googleConfiguration token)
+                      else
+                        (getGoolgeUserInfo googleConfiguration token)
+            in
+            
             ( model
             , Effect.fromCmd (Cmd.batch 
-                [ (getGoolgeUserInfo googleConfiguration token)
+                [ cmd
                 , clearUrl
                 ]
             ))

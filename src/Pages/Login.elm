@@ -470,8 +470,8 @@ view model =
                   }
                 ]
             }
-        , div [] [ text (Maybe.withDefault "notset" model.random) ]
+        -- , div [] [ text (Maybe.withDefault "notset" model.random) ]
 
-        , div [] [ text model.message ]
+        -- , div [] [ text model.message ]
         ]
     }

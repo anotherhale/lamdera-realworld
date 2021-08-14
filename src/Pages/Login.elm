@@ -329,7 +329,7 @@ update req msg model =
         GoogleSignIn ->
 
             let
-                state = "{ \"random\"': \"" ++ model.random ++ "\", \"authType\": \"google\"}"
+                state = "{ \"random\": \"" ++ model.random ++ "\", \"authType\": \"google\"}"
                 redirectUri = loginUrl
                 authorization =
                     { clientId = googleConfiguration.clientId
@@ -348,7 +348,7 @@ update req msg model =
 
         FacebookSignIn ->
             let
-                state = "{ \"random\"': \"" ++ model.random ++ "\", \"authType\": \"facebook\"}"
+                state = "{ \"random\": \"" ++ model.random ++ "\", \"authType\": \"facebook\"}"
                 redirectUri = loginUrl
                 authorization =
                     { clientId = facebookConfiguration.clientId

@@ -256,13 +256,13 @@ init shared req =
                 cmd =
                     case authType of
                         Ok oauthState ->
-                            if oauthState.random == model.random then
+                            -- if oauthState.random == model.random then
                                 case oauthState.authType of
                                    "google" -> (getGoolgeUserInfo googleConfiguration token)
                                    "facebook" -> (getFacebookUserInfo facebookConfiguration token)
                                    _ -> Cmd.none
-                            else
-                                Cmd.none
+                            -- else
+                            --     Cmd.none
                         Err _ -> Cmd.none
 
             in

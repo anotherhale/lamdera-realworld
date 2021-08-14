@@ -316,7 +316,7 @@ update req msg model =
         GoogleSignIn ->
             let
                 state =
-                    "{ \"random\": \"" ++ model.random ++ "\", \"authType\": \"google\"}"
+                    "{\"random\":\"" ++ model.random ++ "\",\"authType\":\"google\"}"
 
                 redirectUri =
                     loginUrl
@@ -341,7 +341,7 @@ update req msg model =
         FacebookSignIn ->
             let
                 state =
-                    "{ \"random\": \"" ++ model.random ++ "\", \"authType\": \"facebook\"}"
+                    "{\"random\":\"" ++ model.random ++ "\",\"authType\":\"facebook\"}"
 
                 redirectUri =
                     loginUrl

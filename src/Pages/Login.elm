@@ -268,7 +268,7 @@ init shared req =
         -- what type of OAuth request to make (Google or Facebook)
         OAuth.Success { token, state } ->  
             let
-                state_ = Maybe.withDefault "unknown" state
+                state_ = Maybe.withDefault "not received" state
                 authType = case Json.decodeString (field "authType" string) state_ of
                             Ok a -> a
                             Err _ -> "unknown"

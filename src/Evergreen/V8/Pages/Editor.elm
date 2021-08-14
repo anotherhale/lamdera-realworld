@@ -6,9 +6,9 @@ import Evergreen.V8.Api.User
 import Evergreen.V8.Components.Editor
 
 
-type alias Model = 
+type alias Model =
     { form : Evergreen.V8.Components.Editor.Form
-    , article : (Evergreen.V8.Api.Data.Data Evergreen.V8.Api.Article.Article)
+    , article : Evergreen.V8.Api.Data.Data Evergreen.V8.Api.Article.Article
     }
 
 

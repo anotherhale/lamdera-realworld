@@ -6,7 +6,7 @@ import Bridge exposing (..)
 import Components.ErrorList
 import Effect exposing (Effect)
 import Html exposing (..)
-import Html.Attributes exposing (attribute, class, placeholder, type_, value, src, alt)
+import Html.Attributes exposing (alt, attribute, class, placeholder, src, type_, value)
 import Html.Events as Events
 import Page
 import Request exposing (Request)

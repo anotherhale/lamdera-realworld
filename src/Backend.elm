@@ -360,20 +360,25 @@ updateFromFrontend sessionId clientId msg model =
                 (\r -> send_ (PageMsg (Gen.Msg.Article__Slug_ (Pages.Article.Slug_.GotAuthor r))))
 
         Oauth2_Login user ->
-            let 
-                user_ = { id = user.id
-                        , email = user.email
-                        , username = user.email
-                        , bio = Nothing
-                        , image = user.image
-                        , password = ""
-                        , favorites = []
-                        , following = []
-                        }
-                model_ = { model | users = model.users |> Dict.insert user.id user_ } 
-                ( response, cmd) = ( Success user, renewSession user.id sessionId clientId )
+            let
+                user_ =
+                    { id = user.id
+                    , email = user.email
+                    , username = user.email
+                    , bio = Nothing
+                    , image = user.image
+                    , password = ""
+                    , favorites = []
+                    , following = []
+                    }
+
+                model_ =
+                    { model | users = model.users |> Dict.insert user.id user_ }
+
+                ( response, cmd ) =
+                    ( Success user, renewSession user.id sessionId clientId )
             in
-                ( model_, Cmd.batch [ send_ (PageMsg (Gen.Msg.Login (Pages.Login.GotUser response))), cmd ] )
+            ( model_, Cmd.batch [ send_ (PageMsg (Gen.Msg.Login (Pages.Login.GotUser response))), cmd ] )
 
         UserAuthentication_Login { params } ->
             let

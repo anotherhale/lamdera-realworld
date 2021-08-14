@@ -1,6 +1,7 @@
 module Evergreen.V8.Components.Editor exposing (..)
 
-type alias Form = 
+
+type alias Form =
     { title : String
     , description : String
     , body : String

@@ -6,10 +6,10 @@ import Evergreen.V19.Api.User
 import Evergreen.V19.Components.Editor
 
 
-type alias Model = 
+type alias Model =
     { slug : String
-    , form : (Maybe Evergreen.V19.Components.Editor.Form)
-    , article : (Evergreen.V19.Api.Data.Data Evergreen.V19.Api.Article.Article)
+    , form : Maybe Evergreen.V19.Components.Editor.Form
+    , article : Evergreen.V19.Api.Data.Data Evergreen.V19.Api.Article.Article
     }
 
 

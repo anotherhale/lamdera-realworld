@@ -6,6 +6,7 @@ import Random.Pcg.Extended as Random
 import Task exposing (Task)
 
 
+
 {- Usage:
 
 
@@ -34,7 +35,7 @@ import Task exposing (Task)
 -}
 
 
-toMaybeUuid : (Result Http.Error String) -> Maybe String
+toMaybeUuid : Result Http.Error String -> Maybe String
 toMaybeUuid result =
     let
         newUuid =

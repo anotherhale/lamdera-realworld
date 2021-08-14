@@ -1,5 +1,6 @@
 module Evergreen.V9.Api.Data exposing (..)
 
+
 type Data value
     = NotAsked
     | Loading

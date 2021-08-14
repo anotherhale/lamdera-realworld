@@ -1,3 +1,5 @@
 module Evergreen.V19.Gen.Params.Login exposing (..)
 
-type alias Params = ()
+
+type alias Params =
+    ()

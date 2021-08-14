@@ -1,31 +1,28 @@
 module Pages.Login exposing (Model, Msg(..), page)
 
 import Api.Data exposing (Data)
+import Api.RandomOrg
 import Api.User exposing (User)
 import Bridge exposing (..)
 import Browser.Navigation as Navigation exposing (Key)
 import Components.UserForm
 import Effect exposing (Effect)
+import Evergreen.V1.Pages.Register exposing (Msg(..))
 import Gen.Route as Route
+import Html exposing (button, div, s, text)
+import Html.Attributes exposing (class)
+import Html.Events exposing (onClick)
+import Http
+import Json.Decode as Json exposing (field, string)
+import OAuth
+import OAuth.Implicit as OAuth
 import Page
 import Request exposing (Request)
 import Shared
+import Url exposing (Protocol(..), Url)
+import Url.Parser.Query as Query
 import Utils.Route
 import View exposing (View)
-import Html exposing (button)
-import Html.Events exposing (onClick)
-import Html exposing (text)
-import Html.Attributes exposing (class)
-import Html exposing (div)
-import Http
-import Json.Decode as Json exposing (string, field)
-import OAuth
-import OAuth.Implicit as OAuth
-import Url exposing (Protocol(..), Url)
-import Evergreen.V1.Pages.Register exposing (Msg(..))
-import Html exposing (s)
-import Api.RandomOrg
-import Url.Parser.Query as Query
 
 
 page : Shared.Model -> Request -> Page.With Model Msg
@@ -38,10 +35,9 @@ page shared req =
         }
 
 
-
 type alias UserInfo =
-    { id: String
-    , email: String
+    { id : String
+    , email : String
     , name : String
     , picture : String
     }
@@ -66,8 +62,9 @@ defaultHttpsUrl =
     , fragment = Nothing
     }
 
+
 loginUrl : Url
-loginUrl = 
+loginUrl =
     { protocol = Https
     , host = "lamdera-realworld.lamdera.app"
     , path = "/login"
@@ -75,6 +72,8 @@ loginUrl =
     , query = Nothing
     , fragment = Nothing
     }
+
+
 {-| OAuth configuration.
 Note that this demo also fetches basic user information with the obtained access token,
 hence the user info endpoint and JSON decoder
@@ -110,6 +109,7 @@ getGoolgeUserInfo { userInfoDecoder, userInfoEndpoint } token =
         , tracker = Nothing
         }
 
+
 {-| OAuth configuration.
 Note that this demo also fetches basic user information with the obtained access token,
 hence the user info endpoint and JSON decoder
@@ -132,6 +132,7 @@ facebookConfiguration =
         [ "email", "public_profile" ]
     }
 
+
 getFacebookUserInfo : Configuration -> OAuth.Token -> Cmd Msg
 getFacebookUserInfo { userInfoDecoder, userInfoEndpoint } token =
     Http.request
@@ -147,19 +148,25 @@ getFacebookUserInfo { userInfoDecoder, userInfoEndpoint } token =
 
 type alias OAuthState =
     { random : String
-    , authType: String
+    , authType : String
     }
 
-type AuthType = Facebook
-              | Google
-              | Unknown
+
+type AuthType
+    = Facebook
+    | Google
+    | Unknown
+
 
 outhStateDecoder =
-        Json.map2 OAuthState
-            (Json.field "random" Json.string)
-            (Json.field "authType" Json.string) --authTypeDecoder)
+    Json.map2 OAuthState
+        (Json.field "random" Json.string)
+        (Json.field "authType" Json.string)
 
--- authTypeDecoder = 
+
+
+--authTypeDecoder)
+-- authTypeDecoder =
 
 
 {-| In addition, Facebook returns parameters as query parameters instead of a fragments, and sometimes, a noise fragment is present in the response. So, as a work-around, one can patch the Url to make it compliant with the original RFC specification as follows:
@@ -178,18 +185,26 @@ errorToString error =
     case error of
         Http.BadUrl url ->
             "The URL " ++ url ++ " was invalid"
+
         Http.Timeout ->
             "Unable to reach the server, try again"
+
         Http.NetworkError ->
             "Unable to reach the server, check your network connection"
+
         Http.BadBody err ->
             "Bad Body in Request " ++ err
+
         Http.BadStatus 500 ->
             "The server had a problem, try again later"
+
         Http.BadStatus 400 ->
             "Verify your information and try again"
+
         Http.BadStatus _ ->
             "Unknown error"
+
+
 
 --
 -- Facebook Wrong Implementation Work-Arounds
@@ -223,6 +238,7 @@ parsers =
     }
 
 
+
 -- INIT
 
 
@@ -230,27 +246,31 @@ type alias Model =
     { user : Data User
     , email : String
     , password : String
-    , random: String
+    , random : String
     }
 
 
 init : Shared.Model -> Request -> ( Model, Effect Msg )
 init shared req =
     let
-        origin = req.url
+        origin =
+            req.url
+
         redirectUri =
             { origin | query = Nothing, fragment = Nothing }
 
         clearUrl =
             Navigation.replaceUrl req.key (Url.toString redirectUri)
-        model = case shared.user of
-            Just user ->
-                Model (Api.Data.Success user) "" "" ""
 
-            Nothing ->
-                Model Api.Data.NotAsked "" "" ""
+        model =
+            case shared.user of
+                Just user ->
+                    Model (Api.Data.Success user) "" "" ""
+
+                Nothing ->
+                    Model Api.Data.NotAsked "" "" ""
     in
-        -- (model,Effect.none)
+    -- (model,Effect.none)
     case OAuth.parseTokenWith parsers (patchUrl origin) of
         OAuth.Empty ->
             ( model
@@ -262,35 +282,50 @@ init shared req =
         -- usage is to prevent cross-site request forgery; at minima, it should be a short,
         -- non-guessable string, generated on the fly.
         --
-        -- We request a random string from RandomOrg and store it in the model and then 
-        -- verify the request's random string to the model and also the authType to know 
+        -- We request a random string from RandomOrg and store it in the model and then
+        -- verify the request's random string to the model and also the authType to know
         -- what type of OAuth request to make (Google or Facebook)
-        OAuth.Success { token, state } ->  
+        OAuth.Success { token, state } ->
             let
-                state_ = Maybe.withDefault "not received" state
-                authType = case Json.decodeString (field "authType" string) state_ of
-                            Ok a -> a
-                            Err _ -> "unknown"
-                cmd = case authType of
-                   "google" -> (getGoolgeUserInfo googleConfiguration token)
-                   "facebook" -> (getFacebookUserInfo facebookConfiguration token)
-                   _ -> Cmd.none
+                state_ =
+                    Maybe.withDefault "not received" state
+
+                authType =
+                    case Json.decodeString (field "authType" string) state_ of
+                        Ok a ->
+                            a
+
+                        Err _ ->
+                            "unknown"
+
+                cmd =
+                    case authType of
+                        "google" ->
+                            getGoolgeUserInfo googleConfiguration token
+
+                        "facebook" ->
+                            getFacebookUserInfo facebookConfiguration token
+
+                        _ ->
+                            Cmd.none
             in
-            
             ( model
-            , Effect.fromCmd (Cmd.batch 
-                [ cmd
-                , clearUrl
-                ]
-            ))
+            , Effect.fromCmd
+                (Cmd.batch
+                    [ cmd
+                    , clearUrl
+                    ]
+                )
+            )
 
         OAuth.Error err ->
             let
-                errMsg = "Init - " ++ OAuth.errorCodeToString err.error ++ Maybe.withDefault "" err.errorDescription
+                errMsg =
+                    "Init - " ++ OAuth.errorCodeToString err.error ++ Maybe.withDefault "" err.errorDescription
             in
-            
             ( model
-            , Effect.fromCmd clearUrl )
+            , Effect.fromCmd clearUrl
+            )
 
 
 
@@ -326,10 +361,13 @@ update req msg model =
             )
 
         GoogleSignIn ->
-
             let
-                state = "{ \"random\": \"" ++ model.random ++ "\", \"authType\": \"google\"}"
-                redirectUri = loginUrl
+                state =
+                    "{ \"random\": \"" ++ model.random ++ "\", \"authType\": \"google\"}"
+
+                redirectUri =
+                    loginUrl
+
                 authorization =
                     { clientId = googleConfiguration.clientId
                     , redirectUri = redirectUri
@@ -339,16 +377,22 @@ update req msg model =
                     }
             in
             ( model
-            , Effect.fromCmd <| (authorization
-                |> OAuth.makeAuthorizationUrl
-                |> Url.toString
-                |> Navigation.load)
+            , Effect.fromCmd <|
+                (authorization
+                    |> OAuth.makeAuthorizationUrl
+                    |> Url.toString
+                    |> Navigation.load
+                )
             )
 
         FacebookSignIn ->
             let
-                state = "{ \"random\": \"" ++ model.random ++ "\", \"authType\": \"facebook\"}"
-                redirectUri = loginUrl
+                state =
+                    "{ \"random\": \"" ++ model.random ++ "\", \"authType\": \"facebook\"}"
+
+                redirectUri =
+                    loginUrl
+
                 authorization =
                     { clientId = facebookConfiguration.clientId
                     , redirectUri = redirectUri
@@ -358,10 +402,12 @@ update req msg model =
                     }
             in
             ( model
-            , Effect.fromCmd <| (authorization
-                |> OAuth.makeAuthorizationUrl
-                |> Url.toString
-                |> Navigation.load)
+            , Effect.fromCmd <|
+                (authorization
+                    |> OAuth.makeAuthorizationUrl
+                    |> Url.toString
+                    |> Navigation.load
+                )
             )
 
         AttemptedSignIn ->
@@ -389,9 +435,9 @@ update req msg model =
                     ( { model | user = user }
                     , Effect.none
                     )
-        
+
         GotOauthUserInfo userinfo ->
-            case userinfo of 
+            case userinfo of
                 Err err ->
                     ( model
                     , Effect.none
@@ -399,23 +445,25 @@ update req msg model =
 
                 Ok userInfo ->
                     let
-                        userId = String.toInt userInfo.id |> Maybe.withDefault 0
-                        user = (User userId userInfo.email userInfo.email Nothing userInfo.picture)
-                        datauser = Api.Data.Success user
+                        userId =
+                            String.toInt userInfo.id |> Maybe.withDefault 0
+
+                        user =
+                            User userId userInfo.email userInfo.email Nothing userInfo.picture
+
+                        datauser =
+                            Api.Data.Success user
                     in
                     ( { model | user = datauser }
                     , Effect.batch
                         [ Effect.fromCmd (Utils.Route.navigate req.key Route.Home_)
                         , Effect.fromShared (Shared.SignedInUser user)
-                        , Effect.fromCmd << sendToBackend <| (Oauth2_Login user)
+                        , Effect.fromCmd << sendToBackend <| Oauth2_Login user
                         ]
                     )
 
         RandomSeedResult result ->
-            ( { model | random =  Maybe.withDefault "0" (Api.RandomOrg.toMaybeUuid result)  }, Effect.none)
-
-                  
-                    
+            ( { model | random = Maybe.withDefault "0" (Api.RandomOrg.toMaybeUuid result) }, Effect.none )
 
 
 subscriptions : Model -> Sub Msg
@@ -433,13 +481,19 @@ view model =
     , body =
         [ div [ class "container page" ]
             [ div [ class "row" ] []
-            , div [ class "text-center auth-btn"] [ button 
-                [ onClick GoogleSignIn, class "btn-google" ] [ text "Sign in" ] ]
+            , div [ class "text-center auth-btn" ]
+                [ button
+                    [ onClick GoogleSignIn, class "btn-google" ]
+                    [ text "Sign in" ]
+                ]
             ]
         , div [ class "container page" ]
             [ div [ class "row" ] []
-            , div [ class "text-center auth-btn"] [ button 
-                [ onClick FacebookSignIn, class "btn-facebook" ] [ text "Sign in" ] ]
+            , div [ class "text-center auth-btn" ]
+                [ button
+                    [ onClick FacebookSignIn, class "btn-facebook" ]
+                    [ text "Sign in" ]
+                ]
             ]
         , Components.UserForm.view
             { user = model.user
@@ -460,5 +514,4 @@ view model =
                 ]
             }
         ]
-
     }

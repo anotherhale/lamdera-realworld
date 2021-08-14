@@ -5,8 +5,8 @@ import Evergreen.V1.Api.User
 import Http
 
 
-type alias Model = 
-    { user : (Evergreen.V1.Api.Data.Data Evergreen.V1.Api.User.User)
+type alias Model =
+    { user : Evergreen.V1.Api.Data.Data Evergreen.V1.Api.User.User
     , email : String
     , password : String
     }
@@ -17,7 +17,7 @@ type Field
     | Password
 
 
-type alias UserInfo = 
+type alias UserInfo =
     { name : String
     , picture : String
     }

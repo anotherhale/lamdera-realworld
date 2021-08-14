@@ -6,6 +6,7 @@ import Api.Data exposing (Data)
 import Api.User exposing (User)
 import Bridge exposing (..)
 import Components.ArticleList
+import Debug exposing (toString)
 import Html exposing (..)
 import Html.Attributes exposing (class, classList)
 import Html.Events as Events
@@ -14,7 +15,6 @@ import Request exposing (Request)
 import Shared
 import Utils.Maybe
 import View exposing (View)
-import Debug exposing (toString)
 
 
 page : Shared.Model -> Request -> Page.With Model Msg
@@ -226,7 +226,7 @@ view shared model =
             ]
         ]
     }
- 
+
 
 viewTabs :
     Shared.Model

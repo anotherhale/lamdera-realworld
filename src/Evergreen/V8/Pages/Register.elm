@@ -4,8 +4,8 @@ import Evergreen.V8.Api.Data
 import Evergreen.V8.Api.User
 
 
-type alias Model = 
-    { user : (Evergreen.V8.Api.Data.Data Evergreen.V8.Api.User.User)
+type alias Model =
+    { user : Evergreen.V8.Api.Data.Data Evergreen.V8.Api.User.User
     , username : String
     , email : String
     , password : String

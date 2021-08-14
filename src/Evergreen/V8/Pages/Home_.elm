@@ -5,7 +5,8 @@ import Evergreen.V8.Api.Data
 import Evergreen.V8.Api.User
 
 
-type alias Tag = String
+type alias Tag =
+    String
 
 
 type Tab
@@ -14,10 +15,10 @@ type Tab
     | TagFilter Tag
 
 
-type alias Model = 
-    { listing : (Evergreen.V8.Api.Data.Data Evergreen.V8.Api.Article.Listing)
+type alias Model =
+    { listing : Evergreen.V8.Api.Data.Data Evergreen.V8.Api.Article.Listing
     , page : Int
-    , tags : (Evergreen.V8.Api.Data.Data (List Tag))
+    , tags : Evergreen.V8.Api.Data.Data (List Tag)
     , activeTab : Tab
     }
 

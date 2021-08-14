@@ -1,5 +1,6 @@
 module Evergreen.V14.Gen.Params.Profile.Username_ exposing (..)
 
-type alias Params = 
+
+type alias Params =
     { username : String
     }

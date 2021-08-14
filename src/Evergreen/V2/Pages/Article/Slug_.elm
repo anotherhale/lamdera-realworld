@@ -7,9 +7,9 @@ import Evergreen.V2.Api.Profile
 import Evergreen.V2.Api.User
 
 
-type alias Model = 
-    { article : (Evergreen.V2.Api.Data.Data Evergreen.V2.Api.Article.Article)
-    , comments : (Evergreen.V2.Api.Data.Data (List Evergreen.V2.Api.Article.Comment.Comment))
+type alias Model =
+    { article : Evergreen.V2.Api.Data.Data Evergreen.V2.Api.Article.Article
+    , comments : Evergreen.V2.Api.Data.Data (List Evergreen.V2.Api.Article.Comment.Comment)
     , commentText : String
     }
 

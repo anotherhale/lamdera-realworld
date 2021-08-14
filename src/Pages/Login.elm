@@ -129,7 +129,7 @@ facebookConfiguration =
     , clientId =
         "533032778122323"
     , scope =
-        [ "public_profile", "email" ]
+        [ "email", "public_profile" ]
     }
 
 getFacebookUserInfo : Configuration -> OAuth.Token -> Cmd Msg

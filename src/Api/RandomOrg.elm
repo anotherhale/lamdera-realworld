@@ -3,7 +3,6 @@ module Api.RandomOrg exposing (..)
 import Http
 import Prng.Uuid as Uuid
 import Random.Pcg.Extended as Random
-import Task exposing (Task)
 
 
 
@@ -58,16 +57,18 @@ toMaybeUuid result =
                         |> List.map String.toInt
                         |> justs
 
-                Err e ->
+                Err _ ->
                     []
     in
     newUuid
 
 
+urlGet5Random32Bit : String
 urlGet5Random32Bit =
     "https://www.random.org/integers/?num=5&min=-1000000000&max=1000000000&col=1&base=10&format=plain&rnd=new"
 
 
+get5Random32Bit : (Result Http.Error String -> msg) -> Cmd msg
 get5Random32Bit msg =
     Http.get { expect = Http.expectString msg, url = urlGet5Random32Bit }
 
@@ -77,7 +78,7 @@ justs =
         (\v acc ->
             case v of
                 Just el ->
-                    [ el ] ++ acc
+                    acc ++ [ el ]
 
                 Nothing ->
                     acc

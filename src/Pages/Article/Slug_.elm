@@ -44,7 +44,7 @@ type alias Model =
 
 
 init : Shared.Model -> Request.With Params -> ( Model, Cmd Msg )
-init shared { params } =
+init _ { params } =
     ( { article = Api.Data.Loading
       , comments = Api.Data.Loading
       , commentText = ""
@@ -91,7 +91,7 @@ update req msg model =
             , Cmd.none
             )
 
-        ClickedFavorite user article ->
+        ClickedFavorite _ article ->
             ( model
             , ArticleFavorite_Article__Slug_
                 { slug = article.slug
@@ -99,7 +99,7 @@ update req msg model =
                 |> sendToBackend
             )
 
-        ClickedUnfavorite user article ->
+        ClickedUnfavorite _ article ->
             ( model
             , ArticleUnfavorite_Article__Slug_
                 { slug = article.slug
@@ -107,7 +107,7 @@ update req msg model =
                 |> sendToBackend
             )
 
-        ClickedDeleteArticle user article ->
+        ClickedDeleteArticle _ article ->
             ( model
             , ArticleDelete_Article__Slug_
                 { slug = article.slug
@@ -135,7 +135,7 @@ update req msg model =
             , Cmd.none
             )
 
-        ClickedFollow user profile ->
+        ClickedFollow _ profile ->
             ( model
             , ProfileFollow_Article__Slug_
                 { username = profile.username
@@ -143,7 +143,7 @@ update req msg model =
                 |> sendToBackend
             )
 
-        ClickedUnfollow user profile ->
+        ClickedUnfollow _ profile ->
             ( model
             , ProfileUnfollow_Article__Slug_
                 { username = profile.username
@@ -161,7 +161,7 @@ update req msg model =
             , Cmd.none
             )
 
-        SubmittedCommentForm user article ->
+        SubmittedCommentForm _ article ->
             if String.isEmpty model.commentText then
                 ( model, Cmd.none )
 
@@ -184,7 +184,7 @@ update req msg model =
             , Cmd.none
             )
 
-        ClickedDeleteComment user article comment ->
+        ClickedDeleteComment _ article comment ->
             ( model
             , ArticleCommentDelete_Article__Slug_
                 { articleSlug = article.slug
@@ -258,7 +258,7 @@ viewArticle shared model article =
 
 
 viewArticleMeta : Shared.Model -> Model -> Article -> Html Msg
-viewArticleMeta shared model article =
+viewArticleMeta shared _ article =
     div [ class "article-meta" ] <|
         List.concat
             [ [ a [ href ("/profile/" ++ article.author.username) ]

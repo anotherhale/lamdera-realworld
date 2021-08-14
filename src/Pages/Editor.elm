@@ -35,7 +35,7 @@ type alias Model =
 
 
 init : Shared.Model -> ( Model, Cmd Msg )
-init shared =
+init _ =
     ( { form =
             { title = ""
             , description = ""
@@ -72,7 +72,7 @@ update req msg model =
             , Cmd.none
             )
 
-        SubmittedForm user ->
+        SubmittedForm _ ->
             ( model
             , ArticleCreate_Editor
                 { article =

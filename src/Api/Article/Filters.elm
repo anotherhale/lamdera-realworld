@@ -43,10 +43,11 @@ favoritedBy username (Filters filters) =
     Filters { filters | favorited = Just username }
 
 
+byTag : Maybe a -> Dict.Dict comparable { b | tags : List a } -> Dict.Dict comparable { b | tags : List a }
 byTag mTag articles =
     case mTag of
         Just tag ->
-            articles |> Dict.filter (\k a -> a.tags |> List.member tag)
+            articles |> Dict.filter (\_ a -> a.tags |> List.member tag)
 
         Nothing ->
             articles
@@ -55,9 +56,9 @@ byTag mTag articles =
 byAuthor mAuthor users articles =
     case mAuthor of
         Just username ->
-            case users |> Dict.find (\k u -> u.username == username) |> Maybe.map Tuple.second of
+            case users |> Dict.find (\_ u -> u.username == username) |> Maybe.map Tuple.second of
                 Just user ->
-                    articles |> Dict.filter (\k a -> a.userId == user.id)
+                    articles |> Dict.filter (\_ a -> a.userId == user.id)
 
                 Nothing ->
                     articles
@@ -69,9 +70,9 @@ byAuthor mAuthor users articles =
 byFavorite mUsername users articles =
     case mUsername of
         Just username ->
-            case users |> Dict.find (\k u -> u.username == username) |> Maybe.map Tuple.second of
+            case users |> Dict.find (\_ u -> u.username == username) |> Maybe.map Tuple.second of
                 Just user ->
-                    articles |> Dict.filter (\slug a -> List.member slug user.favorites)
+                    articles |> Dict.filter (\slug _ -> List.member slug user.favorites)
 
                 Nothing ->
                     articles

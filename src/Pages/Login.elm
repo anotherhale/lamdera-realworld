@@ -4,12 +4,12 @@ import Api.Data exposing (Data)
 import Api.RandomOrg
 import Api.User exposing (User)
 import Bridge exposing (..)
-import Browser.Navigation as Navigation exposing (Key)
+import Browser.Navigation as Navigation
 import Components.UserForm
 import Effect exposing (Effect)
 import Evergreen.V1.Pages.Register exposing (Msg(..))
 import Gen.Route as Route
-import Html exposing (button, div, s, text)
+import Html exposing (button, div, text)
 import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
 import Http
@@ -146,29 +146,6 @@ getFacebookUserInfo { userInfoDecoder, userInfoEndpoint } token =
         }
 
 
-type alias OAuthState =
-    { random : String
-    , authType : String
-    }
-
-
-type AuthType
-    = Facebook
-    | Google
-    | Unknown
-
-
-outhStateDecoder =
-    Json.map2 OAuthState
-        (Json.field "random" Json.string)
-        (Json.field "authType" Json.string)
-
-
-
---authTypeDecoder)
--- authTypeDecoder =
-
-
 {-| In addition, Facebook returns parameters as query parameters instead of a fragments, and sometimes, a noise fragment is present in the response. So, as a work-around, one can patch the Url to make it compliant with the original RFC specification as follows:
 -}
 patchUrl : Url -> Url
@@ -178,32 +155,6 @@ patchUrl url =
 
     else
         url
-
-
-errorToString : Http.Error -> String
-errorToString error =
-    case error of
-        Http.BadUrl url ->
-            "The URL " ++ url ++ " was invalid"
-
-        Http.Timeout ->
-            "Unable to reach the server, try again"
-
-        Http.NetworkError ->
-            "Unable to reach the server, check your network connection"
-
-        Http.BadBody err ->
-            "Bad Body in Request " ++ err
-
-        Http.BadStatus 500 ->
-            "The server had a problem, try again later"
-
-        Http.BadStatus 400 ->
-            "Verify your information and try again"
-
-        Http.BadStatus _ ->
-            "Unknown error"
-
 
 
 --
@@ -318,11 +269,7 @@ init shared req =
                 )
             )
 
-        OAuth.Error err ->
-            let
-                errMsg =
-                    "Init - " ++ OAuth.errorCodeToString err.error ++ Maybe.withDefault "" err.errorDescription
-            in
+        OAuth.Error _ ->
             ( model
             , Effect.fromCmd clearUrl
             )
@@ -438,7 +385,7 @@ update req msg model =
 
         GotOauthUserInfo userinfo ->
             case userinfo of
-                Err err ->
+                Err _ ->
                     ( model
                     , Effect.none
                     )

@@ -33,7 +33,7 @@ type alias Model =
 
 
 init : Request -> Flags -> ( Model, Cmd Msg )
-init _ json =
+init _ _ =
     ( Model Nothing
     , Cmd.none
     )

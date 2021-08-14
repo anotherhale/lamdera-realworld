@@ -34,7 +34,7 @@ app =
         { init = init
         , update = update
         , updateFromFrontend = updateFromFrontend
-        , subscriptions = \m -> onConnect CheckSession
+        , subscriptions = \_ -> onConnect CheckSession
         }
 
 
@@ -160,13 +160,13 @@ updateFromFrontend sessionId clientId msg model =
                         Failure [ "you do not have permission for this article" ]
     in
     case msg of
-        SignedOut user ->
+        SignedOut _ ->
             ( { model | sessions = model.sessions |> Dict.remove sessionId }, Cmd.none )
 
         GetTags_Home_ ->
             let
                 allTags =
-                    model.articles |> Dict.foldl (\slug article tags -> tags ++ article.tags) [] |> List.unique
+                    model.articles |> Dict.foldl (\_ article tags -> tags ++ article.tags) [] |> List.unique
             in
             send (PageMsg (Gen.Msg.Home_ (Pages.Home_.GotTags (Success allTags))))
 
@@ -188,10 +188,10 @@ updateFromFrontend sessionId clientId msg model =
                             let
                                 filtered =
                                     model.articles
-                                        |> Dict.filter (\slug article -> List.member article.userId user.following)
+                                        |> Dict.filter (\_ article -> List.member article.userId user.following)
 
                                 enriched =
-                                    filtered |> Dict.map (\slug article -> loadArticleFromStore model userM article)
+                                    filtered |> Dict.map (\_ article -> loadArticleFromStore model userM article)
 
                                 grouped =
                                     enriched |> Dict.values |> List.greedyGroupsOf Api.Article.itemsPerPage
@@ -384,9 +384,9 @@ updateFromFrontend sessionId clientId msg model =
             let
                 ( response, cmd ) =
                     model.users
-                        |> Dict.find (\k u -> u.email == params.email)
+                        |> Dict.find (\_ u -> u.email == params.email)
                         |> Maybe.map
-                            (\( k, u ) ->
+                            (\( _, u ) ->
                                 if u.password == params.password then
                                     ( Success (Api.User.toUser u), renewSession u.id sessionId clientId )
 
@@ -400,7 +400,7 @@ updateFromFrontend sessionId clientId msg model =
         UserRegistration_Register { params } ->
             let
                 ( model_, cmd, res ) =
-                    if model.users |> Dict.any (\k u -> u.email == params.email) then
+                    if model.users |> Dict.any (\_ u -> u.email == params.email) then
                         ( model, Cmd.none, Failure [ "email address already taken" ] )
 
                     else
@@ -457,6 +457,7 @@ getSessionUser sid model =
         |> Maybe.andThen (\session -> model.users |> Dict.get session.userId)
 
 
+renewSession : Api.User.UserId -> SessionId -> ClientId -> Cmd BackendMsg
 renewSession email sid cid =
     Time.now |> Task.perform (RenewSession email sid cid)
 
@@ -471,7 +472,7 @@ getListing model sessionId (Filters { tag, author, favorited }) page =
                 |> Filters.byAuthor author model.users
 
         enriched =
-            filtered |> Dict.map (\slug article -> loadArticleFromStore model (model |> getSessionUser sessionId) article)
+            filtered |> Dict.map (\_ article -> loadArticleFromStore model (model |> getSessionUser sessionId) article)
 
         grouped =
             enriched |> Dict.values |> List.greedyGroupsOf Api.Article.itemsPerPage
@@ -560,7 +561,7 @@ followUser sessionId email model toResponseCmd =
     in
     case model |> getSessionUser sessionId of
         Just user ->
-            ( case model.users |> Dict.find (\l u -> u.email == email) of
+            ( case model.users |> Dict.find (\_ u -> u.email == email) of
                 Just ( _, follow ) ->
                     model |> updateUser { user | following = (follow.id :: user.following) |> List.unique }
 
@@ -575,7 +576,7 @@ followUser sessionId email model toResponseCmd =
 
 unfollowUser : SessionId -> Email -> Model -> (Data Profile -> Cmd msg) -> ( Model, Cmd msg )
 unfollowUser sessionId email model toResponseCmd =
-    case model.users |> Dict.find (\k u -> u.email == email) of
+    case model.users |> Dict.find (\_ u -> u.email == email) of
         Just ( _, followed ) ->
             let
                 res =
@@ -602,11 +603,11 @@ updateUser user model =
 
 
 profileByUsername username model =
-    model.users |> Dict.find (\k u -> u.username == username) |> Maybe.map (Tuple.second >> Api.User.toProfile)
+    model.users |> Dict.find (\_ u -> u.username == username) |> Maybe.map (Tuple.second >> Api.User.toProfile)
 
 
 profileByEmail email model =
-    model.users |> Dict.find (\k u -> u.email == email) |> Maybe.map (Tuple.second >> Api.User.toProfile)
+    model.users |> Dict.find (\_ u -> u.email == email) |> Maybe.map (Tuple.second >> Api.User.toProfile)
 
 
 loadArticleFromStore : Model -> Maybe UserFull -> ArticleStore -> Article

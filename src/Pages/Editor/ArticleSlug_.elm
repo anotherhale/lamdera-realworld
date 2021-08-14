@@ -38,7 +38,7 @@ type alias Model =
 
 
 init : Shared.Model -> Request.With Params -> ( Model, Cmd Msg )
-init shared { params } =
+init _ { params } =
     ( { slug = params.articleSlug
       , form = Nothing
       , article = Api.Data.Loading
@@ -92,7 +92,7 @@ update req msg model =
             , Cmd.none
             )
 
-        SubmittedForm user form ->
+        SubmittedForm _ form ->
             ( model
             , ArticleUpdate_Editor__ArticleSlug_
                 { slug = model.slug

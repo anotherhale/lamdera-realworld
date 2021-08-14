@@ -6,7 +6,6 @@ import Api.Data exposing (Data)
 import Api.User exposing (User)
 import Bridge exposing (..)
 import Components.ArticleList
-import Debug exposing (toString)
 import Html exposing (..)
 import Html.Attributes exposing (class, classList)
 import Html.Events as Events
@@ -78,7 +77,7 @@ fetchArticlesForTab :
             , activeTab : Tab
         }
     -> Cmd Msg
-fetchArticlesForTab shared model =
+fetchArticlesForTab _ model =
     case model.activeTab of
         Global ->
             ArticleList_Home_
@@ -87,7 +86,7 @@ fetchArticlesForTab shared model =
                 }
                 |> sendToBackend
 
-        FeedFor user ->
+        FeedFor _ ->
             ArticleFeed_Home_
                 { page = model.page
                 }
@@ -146,7 +145,7 @@ update shared msg model =
             , fetchArticlesForTab shared newModel
             )
 
-        ClickedFavorite user article ->
+        ClickedFavorite _ article ->
             ( model
             , ArticleFavorite_Home_
                 { slug = article.slug
@@ -154,7 +153,7 @@ update shared msg model =
                 |> sendToBackend
             )
 
-        ClickedUnfavorite user article ->
+        ClickedUnfavorite _ article ->
             ( model
             , ArticleUnfavorite_Home_
                 { slug = article.slug

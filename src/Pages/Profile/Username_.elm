@@ -49,7 +49,7 @@ type Tab
 
 
 init : Shared.Model -> Request.With Params -> ( Model, Cmd Msg )
-init shared { params } =
+init _ { params } =
     ( { username = params.username
       , profile = Api.Data.Loading
       , listing = Api.Data.Loading
@@ -102,14 +102,14 @@ type Msg
 
 
 update : Shared.Model -> Msg -> Model -> ( Model, Cmd Msg )
-update shared msg model =
+update _ msg model =
     case msg of
         GotProfile profile ->
             ( { model | profile = profile }
             , Cmd.none
             )
 
-        ClickedFollow user profile ->
+        ClickedFollow _ profile ->
             ( model
             , ProfileFollow_Profile__Username_
                 { username = profile.username
@@ -117,7 +117,7 @@ update shared msg model =
                 |> sendToBackend
             )
 
-        ClickedUnfollow user profile ->
+        ClickedUnfollow _ profile ->
             ( model
             , ProfileUnfollow_Profile__Username_
                 { username = profile.username
@@ -148,7 +148,7 @@ update shared msg model =
             , fetchArticlesFavoritedBy model.username 1
             )
 
-        ClickedFavorite user article ->
+        ClickedFavorite _ article ->
             ( model
             , ArticleFavorite_Profile__Username_
                 { slug = article.slug
@@ -156,7 +156,7 @@ update shared msg model =
                 |> sendToBackend
             )
 
-        ClickedUnfavorite user article ->
+        ClickedUnfavorite _ article ->
             ( model
             , ArticleUnfavorite_Profile__Username_
                 { slug = article.slug

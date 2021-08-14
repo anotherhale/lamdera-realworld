@@ -104,7 +104,7 @@ update msg model =
         Updated Password value ->
             ( { model | password = Just value }, Effect.none )
 
-        SubmittedForm user ->
+        SubmittedForm _ ->
             ( { model | message = Nothing, errors = [] }
             , (Effect.fromCmd << sendToBackend) <|
                 UserUpdate_Settings

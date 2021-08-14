@@ -439,6 +439,8 @@ view model =
                 ]
             }
         , div [] [ text model.random ]
+
+        , div [] [ text model.message ]
         ]
 
     }

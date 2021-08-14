@@ -214,6 +214,7 @@ type alias Model =
     , email : String
     , password : String
     , random: String
+    , message: String
     }
 
 
@@ -228,15 +229,15 @@ init shared req =
             Navigation.replaceUrl req.key (Url.toString redirectUri)
         model = case shared.user of
             Just user ->
-                Model (Api.Data.Success user) "" "" ""
+                Model (Api.Data.Success user) "" "" "" ""
 
             Nothing ->
-                Model Api.Data.NotAsked "" "" ""
+                Model Api.Data.NotAsked "" "" "" ""
     in
         -- (model,Effect.none)
     case OAuth.parseTokenWith parsers (patchUrl origin) of
         OAuth.Empty -> 
-            ( model
+            ( {model | message = "Empty OAuth" }
             , Effect.fromCmd (Api.RandomOrg.get5Random32Bit RandomSeedResult)
             )
 
@@ -260,7 +261,7 @@ init shared req =
                         (getFacebookUserInfo facebookConfiguration token)
             in
             
-            ( model
+            ( { model | message = "oauth success - " ++ authType }
             , Effect.fromCmd (Cmd.batch 
                 [ cmd
                 , clearUrl
@@ -371,7 +372,7 @@ update req msg model =
         GotOauthUserInfo userinfo ->
             case userinfo of 
                 Err _ ->
-                    ( model
+                    ( { model | message = "OAuth Error" }
                     , Effect.none
                     )
 
@@ -381,7 +382,7 @@ update req msg model =
                         user = (User userId userInfo.email userInfo.email Nothing userInfo.picture)
                         datauser = Api.Data.Success user
                     in
-                    ( { model | user = datauser }
+                    ( { model | user = datauser, message = "GotOAuth - " ++ String.fromInt userId }
                     , Effect.batch
                         [ Effect.fromCmd (Utils.Route.navigate req.key Route.Home_)
                         , Effect.fromShared (Shared.SignedInUser user)

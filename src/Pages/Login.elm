@@ -271,10 +271,10 @@ init shared req =
                 authType = case Json.decodeString (field "authType" string) state_ of
                             Ok a -> a
                             Err _ -> "unknown"
-                cmd = if (String.toLower authType) == "google" then
-                        (getGoolgeUserInfo googleConfiguration token)
-                      else
-                        (getFacebookUserInfo facebookConfiguration token)
+                cmd = case authType of
+                   "google" -> (getGoolgeUserInfo googleConfiguration token)
+                   "facebook" -> (getFacebookUserInfo facebookConfiguration token)
+                   _ -> Cmd.none
             in
             
             ( model

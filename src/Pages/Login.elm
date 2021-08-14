@@ -210,7 +210,7 @@ type alias Model =
     , email : String
     , password : String
     , message : String
-    , random : String
+    , random : Maybe String
     }
 
 
@@ -226,14 +226,13 @@ init shared req =
         clearUrl =
             Navigation.replaceUrl req.key (Url.toString redirectUri)
 
-        sharedRandom = Maybe.withDefault "" shared.random
         model =
             case shared.user of
                 Just user ->
-                    Model (Api.Data.Success user) "" "" ""  sharedRandom
+                    Model (Api.Data.Success user) "" "" ""  shared.random
 
                 Nothing ->
-                    Model Api.Data.NotAsked "" "" "" sharedRandom
+                    Model Api.Data.NotAsked "" "" "" shared.random
     in
     case OAuth.parseTokenWith parsers (patchUrl origin) of
         OAuth.Empty ->
@@ -259,13 +258,18 @@ init shared req =
                 (msg, cmd) =
                     case authType of
                         Ok oauthState ->
-                            if oauthState.random == sharedRandom then
-                                case oauthState.authType of
-                                   "google" -> ("goog: " ++ oauthState.random ++ " " ++ sharedRandom, (getGoolgeUserInfo googleConfiguration token))
-                                   "facebook" -> ("fb: " ++ oauthState.random ++ " " ++ sharedRandom, (getFacebookUserInfo facebookConfiguration token))
-                                   _ -> ("unknown authType: " ++ oauthState.random, Cmd.none)
-                            else
-                                ("", Cmd.none)
+                            case model.random of
+                                Just r -> 
+                                    if r == oauthState.random then
+                                        case oauthState.authType of
+                                            "google" -> ("goog: " ++ oauthState.random ++ " " ++ r, (getGoolgeUserInfo googleConfiguration token))
+                                            "facebook" -> ("fb: " ++ oauthState.random ++ " " ++ r, (getFacebookUserInfo facebookConfiguration token))
+                                            _ -> ("unknown authType: " ++ oauthState.random, Cmd.none)
+                                    else
+                                        ("unknown authType: " ++ oauthState.random, Cmd.none)
+                                Nothing ->
+                                    ("unknown authType: " ++ oauthState.random, Cmd.none)
+
                         Err _ -> ("Json Error: " ++ state_, Cmd.none)
 
             in
@@ -316,9 +320,9 @@ update req msg model =
 
         GoogleSignIn ->
             let
-                sharedRandom = model.random
+                sharedRandom = Maybe.withDefault "random" model.random
                 state =
-                    "{\"random\":\"" ++ model.random ++ "\",\"authType\":\"google\"}"
+                    "{\"random\":\"" ++ sharedRandom ++ "\",\"authType\":\"google\"}"
 
                 redirectUri =
                     loginUrl
@@ -342,8 +346,9 @@ update req msg model =
 
         FacebookSignIn ->
             let
+                sharedRandom = Maybe.withDefault "random" model.random
                 state =
-                    "{\"random\":\"" ++ model.random ++ "\",\"authType\":\"facebook\"}"
+                    "{\"random\":\"" ++ sharedRandom ++ "\",\"authType\":\"facebook\"}"
 
                 redirectUri =
                     loginUrl
@@ -465,7 +470,7 @@ view model =
                   }
                 ]
             }
-        , div [] [ text model.random ]
+        , div [] [ text (Maybe.withDefault "notset" model.random) ]
 
         , div [] [ text model.message ]
         ]

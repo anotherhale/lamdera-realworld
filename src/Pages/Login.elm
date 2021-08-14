@@ -278,7 +278,7 @@ init shared req =
                         (getFacebookUserInfo facebookConfiguration token)
             in
             
-            ( { model | message = "oauth success - " ++ authType }
+            ( { model | message = "oauth success - " ++ authType  ++ " - " ++ state_ }
             , Effect.fromCmd (Cmd.batch 
                 [ cmd
                 , clearUrl

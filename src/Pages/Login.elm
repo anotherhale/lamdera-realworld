@@ -24,6 +24,7 @@ import Url.Parser.Query as Query
 import Utils.Route
 import View exposing (View)
 import Json.Decode.Pipeline exposing (required)
+import Time exposing (Month(..))
 
 page : Shared.Model -> Request -> Page.With Model Msg
 page shared req =
@@ -208,8 +209,8 @@ type alias Model =
     { user : Data User
     , email : String
     , password : String
-    , random : String
     , message : String
+    , random : String
     }
 
 
@@ -225,18 +226,19 @@ init shared req =
         clearUrl =
             Navigation.replaceUrl req.key (Url.toString redirectUri)
 
+        sharedRandom = Maybe.withDefault "" shared.random
         model =
             case shared.user of
                 Just user ->
-                    Model (Api.Data.Success user) "" "" "" ""
+                    Model (Api.Data.Success user) "" "" ""  sharedRandom
 
                 Nothing ->
-                    Model Api.Data.NotAsked "" "" "" ""
+                    Model Api.Data.NotAsked "" "" "" sharedRandom
     in
     case OAuth.parseTokenWith parsers (patchUrl origin) of
         OAuth.Empty ->
             ( model
-            , Effect.fromCmd (Api.RandomOrg.get5Random32Bit RandomSeedResult)
+            , Effect.none
             )
 
         -- It is important to set a `state` when making the authorization request
@@ -257,13 +259,13 @@ init shared req =
                 (msg, cmd) =
                     case authType of
                         Ok oauthState ->
-                            -- if oauthState.random == model.random then
+                            if oauthState.random == sharedRandom then
                                 case oauthState.authType of
-                                   "google" -> ("goog: " ++ oauthState.random ++ " " ++ model.random, (getGoolgeUserInfo googleConfiguration token))
-                                   "facebook" -> ("fb: " ++ oauthState.random ++ " " ++ model.random, (getFacebookUserInfo facebookConfiguration token))
+                                   "google" -> ("goog: " ++ oauthState.random ++ " " ++ sharedRandom, (getGoolgeUserInfo googleConfiguration token))
+                                   "facebook" -> ("fb: " ++ oauthState.random ++ " " ++ sharedRandom, (getFacebookUserInfo facebookConfiguration token))
                                    _ -> ("unknown authType: " ++ oauthState.random, Cmd.none)
-                            -- else
-                            --     Cmd.none
+                            else
+                                ("", Cmd.none)
                         Err _ -> ("Json Error: " ++ state_, Cmd.none)
 
             in
@@ -291,7 +293,6 @@ type Msg
     | GoogleSignIn
     | GotOauthUserInfo (Result Http.Error UserInfo)
     | GotUser (Data User)
-    | RandomSeedResult (Result Http.Error String)
     | Updated Field String
 
 
@@ -315,6 +316,7 @@ update req msg model =
 
         GoogleSignIn ->
             let
+                sharedRandom = model.random
                 state =
                     "{\"random\":\"" ++ model.random ++ "\",\"authType\":\"google\"}"
 
@@ -414,9 +416,6 @@ update req msg model =
                         , Effect.fromCmd << sendToBackend <| Oauth2_Login user
                         ]
                     )
-
-        RandomSeedResult result ->
-            ( { model | random = Maybe.withDefault "0" (Api.RandomOrg.toMaybeUuid result) }, Effect.none )
 
 
 subscriptions : Model -> Sub Msg

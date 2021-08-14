@@ -17,6 +17,8 @@ import Html.Attributes exposing (attribute, class, href, name, rel)
 import Request exposing (Request)
 import Utils.Route
 import View exposing (View)
+import Api.RandomOrg
+import Http
 
 
 
@@ -29,13 +31,14 @@ type alias Flags =
 
 type alias Model =
     { user : Maybe User
+    , random : Maybe String
     }
 
 
 init : Request -> Flags -> ( Model, Cmd Msg )
 init _ _ =
-    ( Model Nothing
-    , Cmd.none
+    ( Model Nothing Nothing
+    , (Api.RandomOrg.get5Random32Bit RandomSeedResult)
     )
 
 
@@ -45,6 +48,7 @@ init _ _ =
 
 type Msg
     = ClickedSignOut
+    | RandomSeedResult (Result Http.Error String)
     | SignedInUser User
 
 
@@ -61,6 +65,8 @@ update _ msg model =
             , model.user |> Maybe.map (\user -> sendToBackend (SignedOut user)) |> Maybe.withDefault Cmd.none
             )
 
+        RandomSeedResult result ->
+            ( { model | random = (Api.RandomOrg.toMaybeUuid result) }, Cmd.none )
 
 subscriptions : Request -> Model -> Sub Msg
 subscriptions _ _ =

@@ -258,17 +258,17 @@ init shared req =
                 (msg, cmd) =
                     case authType of
                         Ok oauthState ->
-                            case model.random of
-                                Just r -> 
-                                    if r == oauthState.random then
-                                        case oauthState.authType of
-                                            "google" -> ("goog: " ++ oauthState.random ++ " " ++ r, (getGoolgeUserInfo googleConfiguration token))
-                                            "facebook" -> ("fb: " ++ oauthState.random ++ " " ++ r, (getFacebookUserInfo facebookConfiguration token))
-                                            _ -> ("unknown authType: " ++ oauthState.random, Cmd.none)
-                                    else
-                                        ("authRandom not sharedRandom: " ++ oauthState.random ++ r, Cmd.none)
-                                Nothing ->
-                                    ("modelRandom not set: " ++ oauthState.random, Cmd.none)
+                            -- case model.random of
+                            --     Just r -> 
+                            --         if r == oauthState.random then
+                            case oauthState.authType of
+                                "google" -> ("goog: " ++ oauthState.random ++ " ", (getGoolgeUserInfo googleConfiguration token))
+                                "facebook" -> ("fb: " ++ oauthState.random ++ " ", (getFacebookUserInfo facebookConfiguration token))
+                                _ -> ("unknown authType: " ++ oauthState.random, Cmd.none)
+                                --     else
+                                --         ("authRandom not sharedRandom: " ++ oauthState.random ++ r, Cmd.none)
+                                -- Nothing ->
+                                --     ("modelRandom not set: " ++ oauthState.random, Cmd.none)
 
                         Err _ -> ("Json Error: " ++ state_, Cmd.none)
 

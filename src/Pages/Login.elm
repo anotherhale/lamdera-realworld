@@ -13,7 +13,7 @@ import Html exposing (button, div, text)
 import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
 import Http
-import Json.Decode as Json exposing (field, string)
+import Json.Decode as Json exposing (string)
 import OAuth
 import OAuth.Implicit as OAuth
 import Page
@@ -23,7 +23,7 @@ import Url exposing (Protocol(..), Url)
 import Url.Parser.Query as Query
 import Utils.Route
 import View exposing (View)
-
+import Json.Decode.Pipeline exposing (required)
 
 page : Shared.Model -> Request -> Page.With Model Msg
 page shared req =
@@ -189,6 +189,16 @@ parsers =
     , authorizationErrorParser = OAuth.defaultAuthorizationErrorParser
     }
 
+type alias OAuthState =
+    { random: String
+    , authType : String
+    }
+
+oAuthStateDecoder : Json.Decoder OAuthState
+oAuthStateDecoder =
+    Json.succeed OAuthState
+        |> required "random" string
+        |> required "authType" string
 
 
 -- INIT
@@ -222,7 +232,6 @@ init shared req =
                 Nothing ->
                     Model Api.Data.NotAsked "" "" ""
     in
-    -- (model,Effect.none)
     case OAuth.parseTokenWith parsers (patchUrl origin) of
         OAuth.Empty ->
             ( model
@@ -242,24 +251,20 @@ init shared req =
                 state_ =
                     Maybe.withDefault "not received" state
 
-                authType =
-                    case Json.decodeString (field "authType" string) state_ of
-                        Ok a ->
-                            a
-
-                        Err _ ->
-                            "unknown"
+                authType = Json.decodeString oAuthStateDecoder state_ 
 
                 cmd =
                     case authType of
-                        "google" ->
-                            getGoolgeUserInfo googleConfiguration token
+                        Ok oauthState ->
+                            if oauthState.random == model.random then
+                                case oauthState.authType of
+                                   "google" -> (getGoolgeUserInfo googleConfiguration token)
+                                   "facebook" -> (getFacebookUserInfo facebookConfiguration token)
+                                   _ -> Cmd.none
+                            else
+                                Cmd.none
+                        Err _ -> Cmd.none
 
-                        "facebook" ->
-                            getFacebookUserInfo facebookConfiguration token
-
-                        _ ->
-                            Cmd.none
             in
             ( model
             , Effect.fromCmd
@@ -274,7 +279,6 @@ init shared req =
             ( model
             , Effect.fromCmd clearUrl
             )
-
 
 
 -- UPDATE

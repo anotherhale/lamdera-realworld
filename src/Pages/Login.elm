@@ -209,6 +209,7 @@ type alias Model =
     , email : String
     , password : String
     , random : String
+    , message : String
     }
 
 
@@ -227,10 +228,10 @@ init shared req =
         model =
             case shared.user of
                 Just user ->
-                    Model (Api.Data.Success user) "" "" ""
+                    Model (Api.Data.Success user) "" "" "" ""
 
                 Nothing ->
-                    Model Api.Data.NotAsked "" "" ""
+                    Model Api.Data.NotAsked "" "" "" ""
     in
     case OAuth.parseTokenWith parsers (patchUrl origin) of
         OAuth.Empty ->
@@ -253,20 +254,20 @@ init shared req =
 
                 authType = Json.decodeString oAuthStateDecoder state_ 
 
-                cmd =
+                (msg, cmd) =
                     case authType of
                         Ok oauthState ->
                             -- if oauthState.random == model.random then
                                 case oauthState.authType of
-                                   "google" -> (getGoolgeUserInfo googleConfiguration token)
-                                   "facebook" -> (getFacebookUserInfo facebookConfiguration token)
-                                   _ -> Cmd.none
+                                   "google" -> ("goog: " ++ oauthState.random, (getGoolgeUserInfo googleConfiguration token))
+                                   "facebook" -> ("fb: " ++ oauthState.random, (getFacebookUserInfo facebookConfiguration token))
+                                   _ -> ("unknown authType: " ++ oauthState.random, Cmd.none)
                             -- else
                             --     Cmd.none
-                        Err _ -> Cmd.none
+                        Err _ -> ("Json Error", Cmd.none)
 
             in
-            ( model
+            ( { model | message = msg }
             , Effect.fromCmd
                 (Cmd.batch
                     [ cmd
@@ -465,5 +466,8 @@ view model =
                   }
                 ]
             }
+        , div [] [ text model.random ]
+
+        , div [] [ text model.message ]
         ]
     }

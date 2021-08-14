@@ -287,7 +287,7 @@ init shared req =
 
         OAuth.Error err ->
             let
-                errMsg = OAuth.errorCodeToString err.error ++ Maybe.withDefault "" err.errorDescription
+                errMsg = "Init - " ++ OAuth.errorCodeToString err.error ++ Maybe.withDefault "" err.errorDescription
             in
             
             ( { model | message = errMsg }
@@ -394,7 +394,7 @@ update req msg model =
         GotOauthUserInfo userinfo ->
             case userinfo of 
                 Err err ->
-                    ( { model | message = errorToString err }
+                    ( { model | message = "GotOauthUserInfo - " ++ errorToString err }
                     , Effect.none
                     )
 

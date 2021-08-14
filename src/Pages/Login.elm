@@ -182,6 +182,8 @@ errorToString error =
             "Unable to reach the server, try again"
         Http.NetworkError ->
             "Unable to reach the server, check your network connection"
+        Http.BadBody err ->
+            "Bad Body in Request " ++ err
         Http.BadStatus 500 ->
             "The server had a problem, try again later"
         Http.BadStatus 400 ->

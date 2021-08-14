@@ -259,8 +259,8 @@ init shared req =
                         Ok oauthState ->
                             -- if oauthState.random == model.random then
                                 case oauthState.authType of
-                                   "google" -> ("goog: " ++ oauthState.random, (getGoolgeUserInfo googleConfiguration token))
-                                   "facebook" -> ("fb: " ++ oauthState.random, (getFacebookUserInfo facebookConfiguration token))
+                                   "google" -> ("goog: " ++ oauthState.random ++ " " ++ model.random, (getGoolgeUserInfo googleConfiguration token))
+                                   "facebook" -> ("fb: " ++ oauthState.random ++ " " ++ model.random, (getFacebookUserInfo facebookConfiguration token))
                                    _ -> ("unknown authType: " ++ oauthState.random, Cmd.none)
                             -- else
                             --     Cmd.none

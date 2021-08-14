@@ -25,6 +25,8 @@ import Url exposing (Protocol(..), Url)
 import Evergreen.V1.Pages.Register exposing (Msg(..))
 import Html exposing (s)
 import Api.RandomOrg
+import Url.Parser.Query as Query
+
 
 page : Shared.Model -> Request -> Page.With Model Msg
 page shared req =
@@ -159,6 +161,51 @@ outhStateDecoder =
 
 -- authTypeDecoder = 
 
+
+{-| In addition, Facebook returns parameters as query parameters instead of a fragments, and sometimes, a noise fragment is present in the response. So, as a work-around, one can patch the Url to make it compliant with the original RFC specification as follows:
+-}
+patchUrl : Url -> Url
+patchUrl url =
+    if url.fragment == Just "_=_" || url.fragment == Nothing then
+        { url | fragment = url.query }
+
+    else
+        url
+
+
+
+--
+-- Facebook Wrong Implementation Work-Arounds
+--
+
+
+{-| No 'token\_type' is returned, so we have to provide a default one as Just "Bearer".
+-}
+tokenParser : Query.Parser (Maybe OAuth.Token)
+tokenParser =
+    Query.map (OAuth.makeToken (Just "Bearer"))
+        (Query.string "access_token")
+
+
+{-| In case of error, no 'error' field is returned, but instead we find a field named 'error\_code'
+-}
+errorParser : Query.Parser (Maybe OAuth.ErrorCode)
+errorParser =
+    Query.map (Maybe.map OAuth.errorCodeFromString)
+        (Query.string "error_code")
+
+
+{-| Put everything together and rely on `OAuth.parseTokenWith` instead of the default parser
+-}
+parsers : OAuth.Parsers OAuth.AuthorizationError OAuth.AuthorizationSuccess
+parsers =
+    { tokenParser = tokenParser
+    , errorParser = errorParser
+    , authorizationSuccessParser = OAuth.defaultAuthorizationSuccessParser
+    , authorizationErrorParser = OAuth.defaultAuthorizationErrorParser
+    }
+
+
 -- INIT
 
 
@@ -187,7 +234,7 @@ init shared req =
                 Model Api.Data.NotAsked "" "" ""
     in
         -- (model,Effect.none)
-    case OAuth.parseToken origin of
+    case OAuth.parseTokenWith parsers (patchUrl origin) of
         OAuth.Empty -> 
             ( model
             , Effect.fromCmd (Api.RandomOrg.get5Random32Bit RandomSeedResult)

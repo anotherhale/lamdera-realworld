@@ -266,9 +266,9 @@ init shared req =
                                             "facebook" -> ("fb: " ++ oauthState.random ++ " " ++ r, (getFacebookUserInfo facebookConfiguration token))
                                             _ -> ("unknown authType: " ++ oauthState.random, Cmd.none)
                                     else
-                                        ("unknown authType: " ++ oauthState.random, Cmd.none)
+                                        ("authRandom not sharedRandom: " ++ oauthState.random ++ r, Cmd.none)
                                 Nothing ->
-                                    ("unknown authType: " ++ oauthState.random, Cmd.none)
+                                    ("modelRandom not set: " ++ oauthState.random, Cmd.none)
 
                         Err _ -> ("Json Error: " ++ state_, Cmd.none)
 

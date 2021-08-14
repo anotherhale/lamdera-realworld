@@ -231,7 +231,6 @@ type alias Model =
     , email : String
     , password : String
     , random: String
-    , message: String
     }
 
 
@@ -246,15 +245,15 @@ init shared req =
             Navigation.replaceUrl req.key (Url.toString redirectUri)
         model = case shared.user of
             Just user ->
-                Model (Api.Data.Success user) "" "" "" ""
+                Model (Api.Data.Success user) "" "" ""
 
             Nothing ->
-                Model Api.Data.NotAsked "" "" "" ""
+                Model Api.Data.NotAsked "" "" ""
     in
         -- (model,Effect.none)
     case OAuth.parseTokenWith parsers (patchUrl origin) of
         OAuth.Empty ->
-            ( {model | message = "Empty OAuth" }
+            ( model
             , Effect.fromCmd (Api.RandomOrg.get5Random32Bit RandomSeedResult)
             )
 
@@ -278,7 +277,7 @@ init shared req =
                         (getFacebookUserInfo facebookConfiguration token)
             in
             
-            ( { model | message = "oauth success - " ++ authType  ++ " - " ++ state_ }
+            ( model
             , Effect.fromCmd (Cmd.batch 
                 [ cmd
                 , clearUrl
@@ -290,7 +289,7 @@ init shared req =
                 errMsg = "Init - " ++ OAuth.errorCodeToString err.error ++ Maybe.withDefault "" err.errorDescription
             in
             
-            ( { model | message = errMsg }
+            ( model
             , Effect.fromCmd clearUrl )
 
 
@@ -394,7 +393,7 @@ update req msg model =
         GotOauthUserInfo userinfo ->
             case userinfo of 
                 Err err ->
-                    ( { model | message = "GotOauthUserInfo - " ++ errorToString err }
+                    ( model
                     , Effect.none
                     )
 
@@ -404,7 +403,7 @@ update req msg model =
                         user = (User userId userInfo.email userInfo.email Nothing userInfo.picture)
                         datauser = Api.Data.Success user
                     in
-                    ( { model | user = datauser, message = "GotOAuth - " ++ String.fromInt userId }
+                    ( { model | user = datauser }
                     , Effect.batch
                         [ Effect.fromCmd (Utils.Route.navigate req.key Route.Home_)
                         , Effect.fromShared (Shared.SignedInUser user)
@@ -460,9 +459,6 @@ view model =
                   }
                 ]
             }
-        , div [] [ text model.random ]
-
-        , div [] [ text model.message ]
         ]
 
     }

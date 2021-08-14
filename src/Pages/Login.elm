@@ -264,7 +264,7 @@ init shared req =
                                    _ -> ("unknown authType: " ++ oauthState.random, Cmd.none)
                             -- else
                             --     Cmd.none
-                        Err _ -> ("Json Error", Cmd.none)
+                        Err _ -> ("Json Error: " ++ state_, Cmd.none)
 
             in
             ( { model | message = msg }

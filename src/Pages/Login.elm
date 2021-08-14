@@ -119,7 +119,7 @@ facebookConfiguration =
     { authorizationEndpoint =
         { defaultHttpsUrl | host = "facebook.com", path = "/v6.0/dialog/oauth" }
     , userInfoEndpoint =
-        { defaultHttpsUrl | host = "graph.facebook.com", path = "/v6.0/me", query = Just "fields=name,picture.type(large)" }
+        { defaultHttpsUrl | host = "graph.facebook.com", path = "/v6.0/me", query = Just "fields=name,email,picture.type(large)" }
     , userInfoDecoder =
         Json.map4 UserInfo
             (Json.field "id" Json.string)

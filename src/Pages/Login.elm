@@ -173,6 +173,21 @@ patchUrl url =
         url
 
 
+errorToString : Http.Error -> String
+errorToString error =
+    case error of
+        Http.BadUrl url ->
+            "The URL " ++ url ++ " was invalid"
+        Http.Timeout ->
+            "Unable to reach the server, try again"
+        Http.NetworkError ->
+            "Unable to reach the server, check your network connection"
+        Http.BadStatus 500 ->
+            "The server had a problem, try again later"
+        Http.BadStatus 400 ->
+            "Verify your information and try again"
+        Http.BadStatus _ ->
+            "Unknown error"
 
 --
 -- Facebook Wrong Implementation Work-Arounds
@@ -236,7 +251,7 @@ init shared req =
     in
         -- (model,Effect.none)
     case OAuth.parseTokenWith parsers (patchUrl origin) of
-        OAuth.Empty -> 
+        OAuth.Empty ->
             ( {model | message = "Empty OAuth" }
             , Effect.fromCmd (Api.RandomOrg.get5Random32Bit RandomSeedResult)
             )
@@ -268,8 +283,13 @@ init shared req =
                 ]
             ))
 
-        OAuth.Error _ ->
-            ( model, Effect.fromCmd clearUrl )
+        OAuth.Error err ->
+            let
+                errMsg = OAuth.errorCodeToString err.error ++ Maybe.withDefault "" err.errorDescription
+            in
+            
+            ( { model | message = errMsg }
+            , Effect.fromCmd clearUrl )
 
 
 
@@ -371,8 +391,8 @@ update req msg model =
         
         GotOauthUserInfo userinfo ->
             case userinfo of 
-                Err _ ->
-                    ( { model | message = "OAuth Error" }
+                Err err ->
+                    ( { model | message = errorToString err }
                     , Effect.none
                     )
 
